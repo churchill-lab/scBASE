@@ -16,7 +16,7 @@ scBASE
 
 
 
-scBASE is a python implementation of three-component Beta-Binomial mixture model for accurate quantitation of allele-specific expression from scRNA-Seq data. It is similar to zero and one inflated Beta-Binomial but we improved stability by making it "soft" zero and "soft" one. Stay tuned!
+**scBASE** is a python implementation of three-component Beta-Binomial mixture model for accurate quantitation of allele-specific expression (ASE) from scRNA-Seq data. Initially we meant to develop Zero- and One-Inflated Beta-Binomial (ZOIBB) model for ASE but we improved stability by making it "soft" zero- and "soft" one-inflated model. Stay tuned!
 
 
 .. image:: ./docs/github_front.png
