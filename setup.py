@@ -11,7 +11,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['Click>=6.0', ]
+requirements = ['Click>=6.0', 'pystan>=2.17', 'loompy>=2.0',]  # 'alntools>=0.1.0',
+
+
 
 setup_requirements = [ ]
 
@@ -33,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="scBASE is a python implementation of three-component mBeta-Binomial mixture model for accurate quantitation of allele-specific expression from scRNA-Seq data.",
+    description="**scBASE** is a python implementation of \"soft\" 0-and-1 inflated model for describing random monoallelic expression and quantifying allele-specific expression from scRNA-Seq data.",
     entry_points={
         'console_scripts': [
             'scbase=scbase.cli:main',
@@ -49,7 +51,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://github.com/kbchoi-jax/scbase',
+    url='https://github.com/churchill-lab/scbase',
     version='0.1.0',
     zip_safe=False,
 )
