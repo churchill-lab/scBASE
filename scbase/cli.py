@@ -8,6 +8,7 @@ import click
 from . import scbase
 from . import utils
 from . import __logo__, __version__
+from . import get_data
 
 
 @click.group()

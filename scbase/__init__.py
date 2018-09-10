@@ -2,6 +2,9 @@
 
 """Top-level package for scBASE."""
 
+import os
+
+
 __author__ = """Kwangbom "KB" Choi, Ph.D."""
 __email__ = 'kb.choi@jax.org'
 __version__ = '0.1.0'
@@ -13,3 +16,9 @@ for modeling single-cell allele-specific expression
 |_ -|  _| __ -|     |__   |   __|
 |___|___|_____|__|__|_____|_____|
                            v""" + __version__
+
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+def get_data(path):
+    return os.path.join(_ROOT, 'stan', path)
+
