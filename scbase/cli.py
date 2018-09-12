@@ -29,5 +29,19 @@ def disambiguate(alntools_file, verbose):
     scbase.disambiguate(alntools_file)
 
 
+@main.command()
+@click.argument('alntools_file', metavar='alntools_file', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.argument('model', metavar='model', default='zoibb')
+@click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
+def run_mcmc(alntools_file, model, verbose):
+    """Console script for scbase.
+    :param alntools_file:
+    :param model:
+    :param verbose:
+    """
+    utils.configure_logging(verbose)
+    scbase.run_mcmc(alntools_file, model)
+
+
 if __name__ == "__main__":
     sys.exit(main())

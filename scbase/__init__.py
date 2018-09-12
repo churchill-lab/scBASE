@@ -9,7 +9,7 @@ __author__ = """Kwangbom "KB" Choi, Ph.D."""
 __email__ = 'kb.choi@jax.org'
 __version__ = '0.1.0'
 __logo__ = """
-Soft zero-and-one inflated beta-binomial model
+\"Soft\" zero-and-one inflated beta-binomial model
 for modeling single-cell allele-specific expression
          _____ _____ _____ _____
  ___ ___| __  |  _  |   __|   __|
@@ -18,6 +18,7 @@ for modeling single-cell allele-specific expression
                            v""" + __version__
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
+
 
 def get_data(path):
     return os.path.join(_ROOT, 'stan', path)
