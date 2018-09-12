@@ -4,6 +4,7 @@
 """The setup script."""
 
 import os
+import scbase
 from setuptools import setup, find_packages
 try:
     from setuptools.command.install import install
@@ -66,14 +67,6 @@ class StanBuild(build_py):
                 self.copy_file(tfile, build_path)
 
 
-# class StanInstall(install):
-#     def run(self):
-#         install.run(self)
-#         print("Finished install.run")
-#         print(self.install_lib)
-#         self.copy_tree(self.build_lib, self.install_lib)
-
-
 setup(
     author="Kwangbom \"KB\" Choi, Ph.D.",
     author_email='kb.choi@jax.org',
@@ -97,7 +90,6 @@ setup(
         ],
     },
     install_requires=requirements,
-    #cmdclass={'build_py': StanBuild, 'install': StanInstall},
     cmdclass={'build_py': StanBuild},
     license="MIT license",
     long_description=readme + '\n\n' + history,
@@ -109,6 +101,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/churchill-lab/scBASE',
-    version='0.1.0',
+    version=scbase.__version__,
     zip_safe=False,
 )
