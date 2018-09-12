@@ -21,7 +21,7 @@ def main(args=None):
 @click.argument('alntools_file', metavar='alntools_file', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
 def disambiguate(alntools_file, verbose):
-    """Console script for scbase.
+    """Console script for scbase
     :param alntools_file:
     :param verbose:
     """
@@ -34,7 +34,7 @@ def disambiguate(alntools_file, verbose):
 @click.argument('model', metavar='model', default='zoibb')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
 def run_mcmc(alntools_file, model, verbose):
-    """Console script for scbase.
+    """Console script for scbase
     :param alntools_file:
     :param model:
     :param verbose:
