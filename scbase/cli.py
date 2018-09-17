@@ -54,8 +54,8 @@ def run_mcmc(loomfile, model, g_start, g_end, verbose):
 @main.command()
 @click.argument('indir', metavar='indir', type=click.Path(exists=True, resolve_path=True))
 @click.argument('loomfile', metavar='loomfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
-@click.option('--counts', metavar='filetype', flag_value='counts')
-@click.option('--params', metavar='filetype', flag_value='params')
+@click.option('--counts', 'filetype', flag_value='counts')
+@click.option('--params', 'filetype', flag_value='params')
 @click.option('-n', '--name', metavar='filename', default=None)
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def collate(loomfile, indir, filetype, filename, verbose):
