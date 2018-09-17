@@ -72,6 +72,8 @@ def collate(indir, loomfile, filetype, filename):
     else:
         if filetype == 'params':
             flist = glob.glob(os.path.join(indir, '*.param.npz'))
+            LOG.info(os.path.join(indir, '*.param.npz'))
         elif filetype == 'counts':
             flist = glob.glob(os.path.join(indir, '*genes*counts'))
+            LOG.info(os.path.join(indir, '*genes*counts'))
     print(len(flist))
