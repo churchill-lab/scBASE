@@ -30,17 +30,21 @@ def disambiguate(alntools_file, verbose):
 
 
 @main.command()
-@click.argument('alntools_file', metavar='alntools_file', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
-@click.argument('model', metavar='model', default='zoibb')
-@click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
-def run_mcmc(alntools_file, model, verbose):
-    """Console script for scbase
-    :param alntools_file:
+@click.argument('loomfile', metavar='loomfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.option('-m', '--model', metavar='model', default='zoibb')
+@click.option('--start', metavar='g_start', default=0, help='Starting gene (row index)')
+@click.option('--end', metavar='g_end', default=None, help='Ending gene (row index)')
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def run_mcmc(loomfile, model, g_start, g_end, verbose):
+    """MCMC script for scBASE
+    :param loomfile:
     :param model:
+    :param g_start:
+    :param g_end:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.run_mcmc(alntools_file, model)
+    scbase.run_mcmc(loomfile, model, g_start, g_end)
 
 
 if __name__ == "__main__":
