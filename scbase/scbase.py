@@ -6,6 +6,8 @@ from __future__ import print_function
 from . import utils
 from . import get_data
 from past.builtins import xrange
+import os
+import glob
 import numpy as np
 import loompy
 import pystan
@@ -52,11 +54,24 @@ def run_mcmc(loomfile, model, g_start, g_end):
     outbase = 'scbase.%d-%d' % (g_start, g_end)
     param = dict()
     g_processed = 0
+    tot_layer = ds.layers.keys()[0]
+    mat_layer = ds.layers.keys()[1]
     for g in xrange(g_start, g_end):
-        x = ds.layers['mat'][g]
-        n = ds.layers[''][g]
+        n = ds.layers[tot_layer][g]
+        x = ds.layers[mat_layer][g]
         param[ds.row_attrs['gname'][g]] = __mcmc(x, n, stan_model)
         g_processed += 1
     LOG.info("All {:,d} genes have been processed.".format(g_processed))
+    ds.close()
     np.savez_compressed('%s.%s' % (outbase, 'param.npz'), **param)
 
+
+def collate(indir, loomfile, filetype, filename):
+    if filename is not None:
+        flist = glob.glob(os.path.join(indir, filename))
+    else:
+        if filetype == 'params':
+            flist = glob.glob(os.path.join(indir, '*.param.npz'))
+        elif filetype == 'counts':
+            flist = glob.glob(os.path.join(indir, '*genes*counts'))
+    print(len(flist))

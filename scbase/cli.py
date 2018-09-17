@@ -18,15 +18,19 @@ def main(args=None):
 
 
 @main.command()
-@click.argument('alntools_file', metavar='alntools_file', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.argument('alntools_file', metavar='alnfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.option('--start', metavar='c_start', default=0, help='Starting cell (column index)')
+@click.option('--end', metavar='c_end', default=None, help='Ending cell (column index)')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
-def disambiguate(alntools_file, verbose):
+def disambiguate(alnfile, c_start, c_end, verbose):
     """Console script for scbase
-    :param alntools_file:
+    :param alnfile:
+    :param c_start:
+    :param c_end:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.disambiguate(alntools_file)
+    scbase.disambiguate(alnfile, c_start, c_end)
 
 
 @main.command()
@@ -45,6 +49,26 @@ def run_mcmc(loomfile, model, g_start, g_end, verbose):
     """
     utils.configure_logging(verbose)
     scbase.run_mcmc(loomfile, model, g_start, g_end)
+
+
+@main.command()
+@click.argument('indir', metavar='indir', type=click.Path(exists=True, resolve_path=True))
+@click.argument('loomfile', metavar='loomfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.option('-c', '--counts', metavar='filetype', flag_value='counts')
+@click.option('-p', '--params', metavar='filetype', flag_value='params')
+@click.option('-n', '--name', metavar='filename', default=None)
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def collate(loomfile, indir, filetype, filename, verbose):
+    """
+    Utility function that collates input/output files
+    :param loomfile:
+    :param indir:
+    :param filetype:
+    :param filename:
+    :return:
+    """
+    utils.configure_logging(verbose)
+    scbase.collate(indir, loomfile, filetype, filename)
 
 
 if __name__ == "__main__":
