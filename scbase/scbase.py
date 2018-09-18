@@ -76,4 +76,9 @@ def collate(indir, loomfile, filetype, filename):
         elif filetype == 'counts':
             flist = glob.glob(os.path.join(indir, '*genes*counts'))
             LOG.info(os.path.join(indir, '*genes*counts'))
-    print(len(flist))
+    LOG.info('Found %d files' % len(flist))
+    if filetype == 'params':
+        ds = loompy.connect(loomfile)
+        gid = dict(zip(ds.row_attrs['gname'], np.arange(ds.shape[0])))
+
+
