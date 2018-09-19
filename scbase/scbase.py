@@ -46,18 +46,18 @@ def __mcmc_tgx(n, model):
     return fit_tgx
 
 
-def run_mcmc(loomfile, model, start, end):
+def run_mcmc(loomfile, model, maternal, start, end):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
     model_file_ase = '%s.pkl' % model[0]
     model_file_tgx = '%s.pkl' % model[1]
     LOG.warn('ASE model file: %s' % get_data(model_file_ase))
-    LOG.warn('TGX model file: %s' % get_data(model_file_tgx))
     stan_model_ase = pickle.load(open(get_data(model_file_ase), 'rb'))
+    LOG.debug(stan_model_ase.model_code)
+    LOG.warn('TGX model file: %s' % get_data(model_file_tgx))
     stan_model_tgx = pickle.load(open(get_data(model_file_tgx), 'rb'))
-    LOG.debug(print(stan_model_ase.model_code))
-    LOG.debug(print(stan_model_tgx.model_code))
+    LOG.debug(stan_model_tgx.model_code)
     ds = loompy.connect(loomfile)
     if end < 0:
         end = ds.shape[0]
@@ -67,13 +67,11 @@ def run_mcmc(loomfile, model, start, end):
     outbase = 'scbase.%d-%d' % (start, end)
     param = dict()
     processed = 0
-    tgx_layer = ds.layers.keys()[0]
-    mat_layer = ds.layers.keys()[1]
     for g in xrange(start, end):
         if ds.ra['gsurv'][g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
-            n = ds.layers[tgx_layer][g]
-            x = ds.layers[mat_layer][g]
+            n = ds.layers[''][g]
+            x = ds.layers[maternal][g]
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
