@@ -19,36 +19,36 @@ def main(args=None):
 
 @main.command()
 @click.argument('alntools_file', metavar='alnfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
-@click.option('--start', metavar='c_start', default=0, help='Starting cell (column index)')
-@click.option('--end', metavar='c_end', default=None, help='Ending cell (column index)')
+@click.option('--start', metavar='<c_start>', default=0, help='Starting cell (column index)')
+@click.option('--end', metavar='<c_end>', default=None, help='Ending cell (column index)')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
-def disambiguate(alnfile, c_start, c_end, verbose):
+def disambiguate(alnfile, start, end, verbose):
     """Console script for scbase
     :param alnfile:
-    :param c_start:
-    :param c_end:
+    :param start:
+    :param end:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.disambiguate(alnfile, c_start, c_end)
+    scbase.disambiguate(alnfile, start, end)
 
 
 @main.command()
 @click.argument('loomfile', metavar='loomfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
 @click.option('-m', '--model', metavar='model', type=(str, str), default=('zoibb', 'pg'))
-@click.option('-s', '--gstart', metavar='g_start', default=0, help='Starting gene (row index)')
-@click.option('-e', '--gend', metavar='g_end', default=None, help='Ending gene (row index)')
+@click.option('-s', '--start', metavar='<g_start>', default=0, help='Starting gene (row index)')
+@click.option('-e', '--end', metavar='<g_end>', default=None, help='Ending gene (row index)')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def run_mcmc(loomfile, model, g_start, g_end, verbose):
+def run_mcmc(loomfile, model, start, end, verbose):
     """MCMC script for scBASE
     :param loomfile:
     :param model:
-    :param g_start:
-    :param g_end:
+    :param start:
+    :param end:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.run_mcmc(loomfile, model, g_start, g_end)
+    scbase.run_mcmc(loomfile, model, start, end)
 
 
 @main.command()

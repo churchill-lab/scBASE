@@ -25,7 +25,7 @@ except NameError:
     xrange = range
 
 
-def disambiguate(alntools_file):
+def disambiguate(alntools_file, start, end):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose')
     LOG.debug('Level-2 verbose')
@@ -46,7 +46,7 @@ def __mcmc_tgx(n, model):
     return fit_tgx
 
 
-def run_mcmc(loomfile, model, g_start, g_end):
+def run_mcmc(loomfile, model, start, end):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -59,17 +59,17 @@ def run_mcmc(loomfile, model, g_start, g_end):
     LOG.debug(print(stan_model_ase.model_code))
     LOG.debug(print(stan_model_tgx.model_code))
     ds = loompy.connect(loomfile)
-    if g_end < 0:
-        g_end = ds.shape[0]
-    elif g_end == 0:
-        g_end = g_start
-    LOG.warn('Genes from %d to %d' % (g_start, g_end-1))
-    outbase = 'scbase.%d-%d' % (g_start, g_end)
+    if end < 0:
+        end = ds.shape[0]
+    elif end == 0:
+        end = start
+    LOG.warn('Genes from %d to %d' % (start, end-1))
+    outbase = 'scbase.%d-%d' % (start, end)
     param = dict()
-    g_processed = 0
+    processed = 0
     tgx_layer = ds.layers.keys()[0]
     mat_layer = ds.layers.keys()[1]
-    for g in xrange(g_start, g_end):
+    for g in xrange(start, end):
         if ds.ra['gsurv'][g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
             n = ds.layers[tgx_layer][g]
@@ -80,8 +80,8 @@ def run_mcmc(loomfile, model, g_start, g_end):
             LOG.warn('Fitting TGX with %s model' % model[1])
             cur_param['tot'] = __mcmc_tgx(n, stan_model_tgx)
             param[ds.row_attrs['gname'][g]] = cur_param
-            g_processed += 1
-    LOG.info("All {:,d} genes have been processed.".format(g_processed))
+            processed += 1
+    LOG.info("All {:,d} genes have been processed.".format(processed))
     np.savez_compressed('%s.%s' % (outbase, 'param.npz'), **param)
     ds.close()
 
