@@ -70,13 +70,17 @@ def run_mcmc(loomfile, model, g_start, g_end):
     tgx_layer = ds.layers.keys()[0]
     mat_layer = ds.layers.keys()[1]
     for g in xrange(g_start, g_end):
-        n = ds.layers[tgx_layer][g]
-        x = ds.layers[mat_layer][g]
-        cur_param = dict()
-        cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
-        cur_param['tot'] = __mcmc_tgx(n, stan_model_tgx)
-        param[ds.row_attrs['gname'][g]] = cur_param
-        g_processed += 1
+        if ds.ra['gsurv'][g]:
+            LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
+            n = ds.layers[tgx_layer][g]
+            x = ds.layers[mat_layer][g]
+            cur_param = dict()
+            LOG.warn('Fitting ASE with %s model' % model[0])
+            cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
+            LOG.warn('Fitting TGX with %s model' % model[1])
+            cur_param['tot'] = __mcmc_tgx(n, stan_model_tgx)
+            param[ds.row_attrs['gname'][g]] = cur_param
+            g_processed += 1
     LOG.info("All {:,d} genes have been processed.".format(g_processed))
     np.savez_compressed('%s.%s' % (outbase, 'param.npz'), **param)
     ds.close()
