@@ -46,7 +46,7 @@ def __mcmc_tgx(n, model):
     return fit_tgx
 
 
-def run_mcmc(loomfile, model, maternal, start, end):
+def run_mcmc(loomfile, model, hapcode, start, end):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -67,11 +67,13 @@ def run_mcmc(loomfile, model, maternal, start, end):
     outbase = 'scbase.%d-%d' % (start, end)
     param = dict()
     processed = 0
+    tgx_layer = ''
+    mat_layer = hapcode[0]
     for g in xrange(start, end):
         if ds.ra['gsurv'][g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
-            n = ds.layers[''][g]
-            x = ds.layers[maternal][g]
+            n = ds.layers[tgx_layer][g]
+            x = ds.layers[mat_layer][g]
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)

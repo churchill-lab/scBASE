@@ -38,20 +38,19 @@ def disambiguate(alnfile, start, end, verbose):
 @click.option('-m', '--model', metavar='<model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-s', '--start', metavar='<g_start>', default=0, help='Starting gene (row index)')
 @click.option('-e', '--end', metavar='<g_end>', default=None, help='Ending gene (row index)')
-@click.option('--maternal', metavar='<maternal>', default='M', help='Letter code for maternal haplotype')
-@click.option('--paternal', metavar='<maternal>', default='M', help='Letter code for maternal haplotype')
+@click.option('--hapcode', metavar='<hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def run_mcmc(loomfile, model, start, end, maternal, verbose):
+def run_mcmc(loomfile, model, hapcode, start, end, verbose):
     """MCMC script for scBASE
     :param loomfile:
     :param model:
-    :param maternal:
+    :param hapcode:
     :param start:
     :param end:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.run_mcmc(loomfile, model, maternal, start, end)
+    scbase.run_mcmc(loomfile, model, hapcode, start, end)
 
 
 @main.command()
