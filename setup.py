@@ -19,7 +19,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['Click>=6.0', 'pystan>=2.17', 'loompy>=2.0', 'future', 'six']  # 'alntools>=0.1.0',
+requirements = ['numpy', 'scipy', 'Click>=6.0', 'pystan>=2.17', 'loompy>=2.0', 'future', 'six']  # 'alntools>=0.1.0',
 setup_requirements = [ ]
 test_requirements = [ ]
 

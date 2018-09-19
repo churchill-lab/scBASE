@@ -9,6 +9,7 @@ from past.builtins import xrange
 import os
 import glob
 import numpy as np
+from scipy.sparse import dok_matrix
 import loompy
 import pystan
 try:
@@ -80,5 +81,48 @@ def collate(indir, loomfile, filetype, filename):
     if filetype == 'params':
         ds = loompy.connect(loomfile)
         gid = dict(zip(ds.row_attrs['gname'], np.arange(ds.shape[0])))
+        num_genes, num_cells = ds.shape
+        ds.ra['pi_P'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['pi_B'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['pi_M'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['alpha_mono'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['alpha_1'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['alpha_2'] = dok_matrix((num_genes, 1), np.float64)
+        ds.ra['Rhat'] = dok_matrix((num_genes, 1), np.float64)
+        ds.layers['pi_pk'] = 'float64'
+        ds.layers['pi_bk'] = 'float64'
+        ds.layers['pi_mk'] = 'float64'
+        ds.layers['p_gk']  = 'float64'
+
+        for f in flist:
+            try:
+                curdata_fh = np.load(f)['group1']
+                curdata = curdata_fh.item()
+            except IndexError:
+                curdata_fh = np.load(f)
+                curdata = curdata_fh.item()
+            except IOError:
+                LOG.warn("Error loading %s" % f)
+            for g_key, g_fitting in curdata.iteritems():
+                cur_gid = gid[g_key]
+                ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
+                ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
+                ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
+                ds.ra['alpha_1'][cur_gid] = g_fitting['ase'][4, 0]
+                ds.ra['alpha_2'][cur_gid] = g_fitting['ase'][5, 0]
+                ds.ra['Rhat'][cur_gid] = g_fitting['ase'][-1, -1]
+                # Get ASE point estimation
+                pi_gk = g_fitting['ase'][6+num_cells:6+num_cells*4, 0].reshape(3, num_cells)
+                cur_theta = np.zeros(shape=pi_gk.shape)
+                alpha_mono = g_fitting['ase'][3, 0]
+                ds.ra['alpha_mono'][cur_gid] = alpha_mono
+                cur_theta[0] = alpha_mono/(alpha_mono+1)
+                cur_theta[1] = 1/(alpha_mono+1)
+                cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
+                ds.layers['p_gk'][cur_gid, :] = (pi_gk * cur_theta).sum(axis=0)
+        ds.close()
+    elif filetype == "counts":
+        pass
+
 
 
