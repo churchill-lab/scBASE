@@ -19,8 +19,8 @@ def main(args=None):
 
 @main.command()
 @click.argument('alntools_file', metavar='<alnfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
-@click.option('--start', metavar='<c_start>', default=0, help='Starting cell (column index)')
-@click.option('--end', metavar='<c_end>', default=None, help='Ending cell (column index)')
+@click.option('--start', metavar='<c_start>', type=int, default=0, help='Starting cell (column index)')
+@click.option('--end', metavar='<c_end>', type=int, default=None, help='Ending cell (column index)')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
 def disambiguate(alnfile, start, end, verbose):
     """Console script for scbase
@@ -36,8 +36,8 @@ def disambiguate(alnfile, start, end, verbose):
 @main.command()
 @click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
 @click.option('-m', '--model', metavar='<model>', type=(str, str), default=('zoibb', 'pg'))
-@click.option('-s', '--start', metavar='<g_start>', default=0, help='Starting gene (row index)')
-@click.option('-e', '--end', metavar='<g_end>', default=None, help='Ending gene (row index)')
+@click.option('-s', '--start', metavar='<g_start>', type=int, default=0, help='Starting gene (row index)')
+@click.option('-e', '--end', metavar='<g_end>', type=int, default=None, help='Ending gene (row index)')
 @click.option('--hapcode', metavar='<hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_mcmc(loomfile, model, hapcode, start, end, verbose):
