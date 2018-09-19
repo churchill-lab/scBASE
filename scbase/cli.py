@@ -35,7 +35,7 @@ def disambiguate(alnfile, c_start, c_end, verbose):
 
 @main.command()
 @click.argument('loomfile', metavar='loomfile', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
-@click.option('-m', '--model', metavar='model', type=('unicode', 'unicode'), default=('zoibb', 'pg'))
+@click.option('-m', '--model', metavar='model', type=(str, str), default=('zoibb', 'pg'))
 @click.option('--start', metavar='g_start', default=0, help='Starting gene (row index)')
 @click.option('--end', metavar='g_end', default=None, help='Ending gene (row index)')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
@@ -58,7 +58,7 @@ def run_mcmc(loomfile, model, g_start, g_end, verbose):
 @click.option('--params', 'filetype', flag_value='params')
 @click.option('--name', 'filename', default=None)
 @click.option('--group', 'groupname', default='group1')
-@click.option('-m', '--model', metavar='model', type=('unicode', 'unicode'), default=('zoibb', 'pg'))
+@click.option('-m', '--model', metavar='model', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def collate(loomfile, indir, filetype, filename, groupname, model, verbose):
     """

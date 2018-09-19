@@ -78,8 +78,8 @@ def run_mcmc(loomfile, model, g_start, g_end):
         param[ds.row_attrs['gname'][g]] = cur_param
         g_processed += 1
     LOG.info("All {:,d} genes have been processed.".format(g_processed))
-    ds.close()
     np.savez_compressed('%s.%s' % (outbase, 'param.npz'), **param)
+    ds.close()
 
 
 def collate(indir, loomfile, filetype, filename, groupname, model):
