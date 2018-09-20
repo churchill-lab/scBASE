@@ -64,6 +64,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
     libsz = ds.ca['size']
     c = libsz / np.median(libsz)
+    LOG.debug('c: %s' % '\t'.join(c[:6]))
     param = dict()
     processed = 0
     tgx_layer = ''
@@ -73,12 +74,13 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             LOG.warn('Loading data for Gene %s [%s]' % (ds.ra['gname'][g], ds.ra['gsymb'][g]))
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
-            LOG.debug()
+            LOG.debug('x: %s' % '\t'.join(x[:6]))
+            LOG.debug('n: %s' % '\t'.join(n[:6]))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
             LOG.warn('Fitting TGX with %s model' % model[1])
-            cur_param['tot'] = __mcmc_tgx(n, c, stan_model_tgx)
+            cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx)
             param[ds.row_attrs['gname'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
@@ -114,14 +116,14 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
             ds.layers['pi_pk'] = 'float64'
             ds.layers['pi_bk'] = 'float64'
             ds.layers['pi_mk'] = 'float64'
-            ds.layers['p_gk']  = 'float64'
+            ds.layers['p_gk'] = 'float64'
         else:
             raise NotImplementedError  # Add initiation for new ASE models here!!
         if model[1] == 'pg':
             ds.ra['alpha_tgx1'] = dok_matrix((num_genes, 1), np.float64)
             ds.ra['alpha_tgx2'] = dok_matrix((num_genes, 1), np.float64)
             ds.ra['Rhat_tgx'] = dok_matrix((num_genes, 1), np.float64)
-            ds.layers['lambda_gk']  = 'float64'
+            ds.layers['lambda_gk'] = 'float64'
         else:
             raise NotImplementedError  # Add initiation for new TGX models here!!
 
@@ -156,10 +158,10 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
                     raise NotImplementedError  # Add handling of new ASE models here!!
                 # Get TGX point estimation
                 if model[1] == 'pg':
-                    ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tot'][0, 0]  # two alphas
-                    ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tot'][1, 0]  # two alphas
-                    ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tot'][2:2+num_cells, 0]  # lambda_gk
-                    ds.ra['Rhat_tgx'][cur_gid] = g_fitting['tot'][-1, -1]
+                    ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
+                    ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
+                    ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_gk
+                    ds.ra['Rhat_tgx'][cur_gid] = g_fitting['tgx'][-1, -1]
                 else:
                     raise NotImplementedError  # Add handling of new TGX models here!!
         ds.close()
