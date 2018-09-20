@@ -147,7 +147,8 @@ def collate(indir, loomfile, filetype, filename, model):
                     ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
                     ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
                     ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
-                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.3f %.3f %.3f ]' % (g_fitting['ase'][0, 0], g_fitting['ase'][1, 0], g_fitting['ase'][2, 0]))
+                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.3f %.3f %.3f ]' % (g_fitting['ase'][1, 0], g_fitting['ase'][2, 0], g_fitting['ase'][0, 0]))
+                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.3f %.3f %.3f ]' % (ds.ra['pi_P'][cur_gid], ds.ra['pi_B'][cur_gid], ds.ra['pi_M'][cur_gid]))
                     ds.ra['alpha_ase1'][cur_gid] = g_fitting['ase'][4, 0]
                     ds.ra['alpha_ase2'][cur_gid] = g_fitting['ase'][5, 0]
                     LOG.debug('[ alpha_ase1, alpha_ase2 ] = [ %.3f %.3f ]' % (g_fitting['ase'][4, 0], g_fitting['ase'][5, 0]))
