@@ -84,7 +84,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             param[ds.row_attrs['gname'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
-    outfile = os.path.join(outdir, 'scbase.%d-%d' % (start, end), 'param.npz')
+    outfile = os.path.join(outdir, 'scbase.%d-%d.param.npz' % (start, end))
     np.savez_compressed(outfile, **param)
     ds.close()
 
