@@ -143,9 +143,9 @@ def collate(indir, loomfile, filetype, filename, model):
                 # Store ASE results
                 if model[0] == 'zoibb':
                     LOG.info('Writing the ASE results by ZOIBB model')
-                    ds.ra['pi_M'][cur_gid, 0] = g_fitting['ase'][0, 0]
-                    ds.ra['pi_P'][cur_gid, 0] = g_fitting['ase'][1, 0]
-                    ds.ra['pi_B'][cur_gid, 0] = g_fitting['ase'][2, 0]
+                    ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
+                    ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
+                    ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
                     LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.5f %.5f %.5f ]' % (g_fitting['ase'][0, 0], g_fitting['ase'][1, 0], g_fitting['ase'][2, 0]))
                     ds.ra['alpha_ase1'][cur_gid, 0] = g_fitting['ase'][4, 0]
                     ds.ra['alpha_ase2'][cur_gid, 0] = g_fitting['ase'][5, 0]
