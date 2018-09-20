@@ -78,9 +78,9 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
-            cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
+            cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase).summary()['summary']
             LOG.warn('Fitting TGX with %s model' % model[1])
-            cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx)
+            cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx).summary()['summary']
             param[ds.row_attrs['gname'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
@@ -105,6 +105,8 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
         ds = loompy.connect(loomfile)
         gid = dict(zip(ds.row_attrs['gname'], np.arange(ds.shape[0])))
         num_genes, num_cells = ds.shape
+
+        # Initialize storage for ASE results
         if model[0] == 'zoibb':
             ds.ra['pi_P'] = dok_matrix((num_genes, 1), np.float64)
             ds.ra['pi_B'] = dok_matrix((num_genes, 1), np.float64)
@@ -119,6 +121,8 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
             ds.layers['p_gk'] = 'float64'
         else:
             raise NotImplementedError  # Add initiation for new ASE models here!!
+
+        # Initialize storage for TGX results
         if model[1] == 'pg':
             ds.ra['alpha_tgx1'] = dok_matrix((num_genes, 1), np.float64)
             ds.ra['alpha_tgx2'] = dok_matrix((num_genes, 1), np.float64)
@@ -138,6 +142,8 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
                 LOG.warn("Error loading %s" % f)
             for g_key, g_fitting in curdata.iteritems():
                 cur_gid = gid[g_key]
+
+                # Store ASE results
                 if model[0] == 'zoibb':
                     ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
                     ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
@@ -156,8 +162,10 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
                     ds.layers['p_gk'][cur_gid, :] = (pi_gk * cur_theta).sum(axis=0)
                 else:
                     raise NotImplementedError  # Add handling of new ASE models here!!
-                # Get TGX point estimation
+
+                # Store TGX results
                 if model[1] == 'pg':
+                    # Get TGX point estimation
                     ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
                     ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_gk
@@ -167,6 +175,7 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
         ds.close()
 
     elif filetype == "counts":
+        loompy.create
         pass
 
 
