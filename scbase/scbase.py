@@ -40,7 +40,7 @@ def __mcmc_ase(x, n, model):
 
 
 def __mcmc_tgx(n, c, model):
-    data = {'N': len(n), 'n': n.astype('int'), 'C':c.astype('int')}
+    data = {'N': len(n), 'n': n.astype('int'), 'C':c}
     fit_tgx = model.sampling(data=data)
     LOG.debug(fit_tgx)
     return fit_tgx
@@ -70,9 +70,10 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     mat_layer = hapcode[0]
     for g in xrange(start, end):
         if ds.ra['selected'][g]:
-            LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
+            LOG.warn('Loading data for Gene %s [%s]' % (ds.ra['gname'][g], ds.ra['gsymb'][g]))
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
+            LOG.debug()
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
