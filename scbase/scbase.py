@@ -71,7 +71,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     mat_layer = hapcode[0]
     for g in xrange(start, end):
         if ds.ra['selected'][g]:
-            LOG.warn('Loading data for Gene %s [%s]' % (ds.ra['gname'][g], ds.ra['gsymb'][g]))
+            LOG.warn('Loading data for Gene %s' % ds.ra['GeneID'][g])
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
             LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
@@ -81,7 +81,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase).summary()['summary']
             LOG.warn('Fitting TGX with %s model' % model[1])
             cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx).summary()['summary']
-            param[ds.row_attrs['gname'][g]] = cur_param
+            param[ds.row_attrs['GeneID'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
     outfile = os.path.join(outdir, 'scbase.%d-%d.param.npz' % (start, end))
@@ -103,7 +103,7 @@ def collate(indir, loomfile, filetype, filename, model):
 
     if filetype == 'params':
         ds = loompy.connect(loomfile)
-        gid = dict(zip(ds.row_attrs['gname'], np.arange(ds.shape[0])))
+        gid = dict(zip(ds.row_attrs['GeneID'], np.arange(ds.shape[0])))
         num_genes, num_cells = ds.shape
 
         # Initialize storage for ASE results
@@ -139,7 +139,7 @@ def collate(indir, loomfile, filetype, filename, model):
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
                 g_fitting = g_results.item()
-                LOG.warn('Storing the fitting results of %s [%s]' % (g_key, ds.ra['gsymb'][cur_gid]))
+                LOG.warn('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
                 if model[0] == 'zoibb':
@@ -147,10 +147,12 @@ def collate(indir, loomfile, filetype, filename, model):
                     pi_m[cur_gid] = g_fitting['ase'][0, 0]
                     pi_p[cur_gid] = g_fitting['ase'][1, 0]
                     pi_b[cur_gid] = g_fitting['ase'][2, 0]
-                    LOG.debug('[ pi_p, pi_b, pi_m ] = [ %.3f %.3f %.3f ]' % (g_fitting['ase'][1, 0], g_fitting['ase'][2, 0], g_fitting['ase'][0, 0]))
+                    LOG.debug('[ pi_p, pi_b, pi_m ] = [ %.3f %.3f %.3f ]' %
+                              (g_fitting['ase'][1, 0], g_fitting['ase'][2, 0], g_fitting['ase'][0, 0]))
                     alpha_ase1[cur_gid] = g_fitting['ase'][4, 0]
                     alpha_ase2[cur_gid] = g_fitting['ase'][5, 0]
-                    LOG.debug('[ alpha_ase1, alpha_ase2 ] = [ %.3f %.3f ]' % (g_fitting['ase'][4, 0], g_fitting['ase'][5, 0]))
+                    LOG.debug('[ alpha_ase1, alpha_ase2 ] = [ %.3f %.3f ]' %
+                              (g_fitting['ase'][4, 0], g_fitting['ase'][5, 0]))
                     rhat_ase[cur_gid] = g_fitting['ase'][-1, -1]
                     LOG.debug('Rhat_ase = %.3f' % g_fitting['ase'][-1, -1])
                     # Get ASE point estimation
@@ -175,7 +177,8 @@ def collate(indir, loomfile, filetype, filename, model):
                     # Get TGX point estimation
                     alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     alpha_tgx2[cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
-                    LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.3f %.3f ]' % (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
+                    LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.3f %.3f ]' %
+                              (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
                     ds.layers['lambda_k'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_k
                     rhat_tgx[cur_gid] = g_fitting['tgx'][-1, -1]
                     LOG.debug('Rhat_tgx = %.3f' % g_fitting['tgx'][-1, -1])
