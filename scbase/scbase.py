@@ -54,10 +54,10 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     model_file_tgx = '%s.pkl' % model[1]
     LOG.warn('ASE model file: %s' % get_data(model_file_ase))
     stan_model_ase = pickle.load(open(get_data(model_file_ase), 'rb'))
-    LOG.debug(stan_model_ase.model_code)
+    LOG.debug('ASE model code\n%s' % stan_model_ase.model_code)
     LOG.warn('TGX model file: %s' % get_data(model_file_tgx))
     stan_model_tgx = pickle.load(open(get_data(model_file_tgx), 'rb'))
-    LOG.debug(stan_model_tgx.model_code)
+    LOG.debug('TGX model code\n%s' % stan_model_tgx.model_code)
     ds = loompy.connect(loomfile)
     if end is None:
         end = start+1
@@ -74,8 +74,8 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             LOG.warn('Loading data for Gene %s [%s]' % (ds.ra['gname'][g], ds.ra['gsymb'][g]))
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
-            LOG.debug('x: %s' % '\t'.join(x[:6].astype(str)))
-            LOG.debug('n: %s' % '\t'.join(n[:6].astype(str)))
+            LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
+            LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
