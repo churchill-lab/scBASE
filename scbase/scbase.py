@@ -39,14 +39,14 @@ def __mcmc_ase(x, n, model):
     return fit_ase
 
 
-def __mcmc_tgx(n, model):
-    data = {'N': len(n), 'n': n.astype('int')}
+def __mcmc_tgx(n, c, model):
+    data = {'N': len(n), 'n': n.astype('int'), 'C':c.astype('int')}
     fit_tgx = model.sampling(data=data)
     LOG.debug(fit_tgx)
     return fit_tgx
 
 
-def run_mcmc(loomfile, model, hapcode, start, end):
+def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -59,18 +59,17 @@ def run_mcmc(loomfile, model, hapcode, start, end):
     stan_model_tgx = pickle.load(open(get_data(model_file_tgx), 'rb'))
     LOG.debug(stan_model_tgx.model_code)
     ds = loompy.connect(loomfile)
-    if end < 0:
-        end = ds.shape[0]
-    elif end == 0:
-        end = start
-    LOG.warn('Genes from %d to %d' % (start, end-1))
-    outbase = 'scbase.%d-%d' % (start, end)
+    if end is None:
+        end = start+1
+    LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
+    libsz = ds.ca['size']
+    c = libsz / np.median(libsz)
     param = dict()
     processed = 0
     tgx_layer = ''
     mat_layer = hapcode[0]
     for g in xrange(start, end):
-        if ds.ra['gsurv'][g]:
+        if ds.ra['selected'][g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['gsymb'][g])
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
@@ -78,11 +77,12 @@ def run_mcmc(loomfile, model, hapcode, start, end):
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
             LOG.warn('Fitting TGX with %s model' % model[1])
-            cur_param['tot'] = __mcmc_tgx(n, stan_model_tgx)
+            cur_param['tot'] = __mcmc_tgx(n, c, stan_model_tgx)
             param[ds.row_attrs['gname'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
-    np.savez_compressed('%s.%s' % (outbase, 'param.npz'), **param)
+    outfile = os.path.join(outdir, 'scbase.%d-%d' % (start, end), 'param.npz')
+    np.savez_compressed(outfile, **param)
     ds.close()
 
 
