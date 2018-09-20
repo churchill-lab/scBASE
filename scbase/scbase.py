@@ -132,14 +132,17 @@ def collate(indir, loomfile, filetype, filename, model):
             raise NotImplementedError  # Add initiation for new TGX models here!!
 
         for f in flist:
+            LOG.warn('Loading %s' % f)
             curdata_fh = np.load(f)
             #curdata = curdata_fh.item()
             for g_key, g_results in curdata_fh.items():
                 cur_gid = gid[g_key]
                 g_fitting = g_results.item()
+                LOG.warn('Storing fitting results of %s [%s]' % (g_key, ds.ra['gsymb'][cur_gid]))
 
                 # Store ASE results
                 if model[0] == 'zoibb':
+                    LOG.info('Writing ASE results')
                     ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
                     ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
                     ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
@@ -160,6 +163,7 @@ def collate(indir, loomfile, filetype, filename, model):
 
                 # Store TGX results
                 if model[1] == 'pg':
+                    LOG.info('Writing TGX results')
                     # Get TGX point estimation
                     ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
@@ -170,7 +174,6 @@ def collate(indir, loomfile, filetype, filename, model):
         ds.close()
 
     elif filetype == "counts":
-        loompy.create
         pass
 
 
