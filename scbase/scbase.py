@@ -64,7 +64,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
     libsz = ds.ca['size']
     c = libsz / np.median(libsz)
-    LOG.debug('c: %s' % '\t'.join(c[:6]))
+    LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
     tgx_layer = ''
@@ -74,8 +74,8 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             LOG.warn('Loading data for Gene %s [%s]' % (ds.ra['gname'][g], ds.ra['gsymb'][g]))
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
-            LOG.debug('x: %s' % '\t'.join(x[:6]))
-            LOG.debug('n: %s' % '\t'.join(n[:6]))
+            LOG.debug('x: %s' % '\t'.join(x[:6].astype(str)))
+            LOG.debug('n: %s' % '\t'.join(n[:6].astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase)
