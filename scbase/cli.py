@@ -61,23 +61,21 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir, verbose):
 @click.option('--counts', 'filetype', flag_value='counts')
 @click.option('--params', 'filetype', flag_value='params')
 @click.option('--name', 'filename', default=None)
-@click.option('--group', 'groupname', default='group1')
 @click.option('-m', '--model', metavar='<model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def collate(loomfile, indir, filetype, filename, groupname, model, verbose):
+def collate(loomfile, indir, filetype, filename, model, verbose):
     """
     Utility function that collates input/output files
     :param loomfile:
     :param indir:
     :param filetype:
     :param filename:
-    :param groupname:
     :param model:
     :param verbose:
     :return:
     """
     utils.configure_logging(verbose)
-    scbase.collate(indir, loomfile, filetype, filename, groupname, model)
+    scbase.collate(indir, loomfile, filetype, filename, model)
 
 
 if __name__ == "__main__":

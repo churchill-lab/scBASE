@@ -89,7 +89,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
     ds.close()
 
 
-def collate(indir, loomfile, filetype, filename, groupname, model):
+def collate(indir, loomfile, filetype, filename, model):
     if filename is not None:
         flist = glob.glob(os.path.join(indir, filename))
     else:
@@ -132,16 +132,11 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
             raise NotImplementedError  # Add initiation for new TGX models here!!
 
         for f in flist:
-            try:
-                curdata_fh = np.load(f)[groupname]
-                curdata = curdata_fh.item()
-            except IndexError:
-                curdata_fh = np.load(f)
-                curdata = curdata_fh.item()
-            except IOError:
-                LOG.warn("Error loading %s" % f)
-            for g_key, g_fitting in curdata.iteritems():
+            curdata_fh = np.load(f)
+            #curdata = curdata_fh.item()
+            for g_key, g_results in curdata_fh.items():
                 cur_gid = gid[g_key]
+                g_fitting = g_results.item()
 
                 # Store ASE results
                 if model[0] == 'zoibb':
@@ -160,8 +155,8 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
                     cur_theta[1] = 1/(alpha_mono+1)
                     cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
                     ds.layers['p_gk'][cur_gid, :] = (pi_gk * cur_theta).sum(axis=0)
-                else:
-                    raise NotImplementedError  # Add handling of new ASE models here!!
+                else:  # Add handling of new ASE models here!!
+                    raise NotImplementedError
 
                 # Store TGX results
                 if model[1] == 'pg':
@@ -170,8 +165,8 @@ def collate(indir, loomfile, filetype, filename, groupname, model):
                     ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
                     ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_gk
                     ds.ra['Rhat_tgx'][cur_gid] = g_fitting['tgx'][-1, -1]
-                else:
-                    raise NotImplementedError  # Add handling of new TGX models here!!
+                else:  # Add handling of new TGX models here!!
+                    raise NotImplementedError
         ds.close()
 
     elif filetype == "counts":
