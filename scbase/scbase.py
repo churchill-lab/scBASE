@@ -108,26 +108,26 @@ def collate(indir, loomfile, filetype, filename, model):
 
         # Initialize storage for ASE results
         if model[0] == 'zoibb':
-            ds.ra['pi_P'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['pi_B'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['pi_M'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['alpha_mono'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['alpha_ase1'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['alpha_ase2'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['Rhat_ase'] = dok_matrix((num_genes, 1), np.float64)
+            pi_p = dok_matrix((num_genes, 1), np.float64)
+            pi_b = dok_matrix((num_genes, 1), np.float64)
+            pi_m = dok_matrix((num_genes, 1), np.float64)
+            alpha_mono = dok_matrix((num_genes, 1), np.float64)
+            alpha_ase1 = dok_matrix((num_genes, 1), np.float64)
+            alpha_ase2 = dok_matrix((num_genes, 1), np.float64)
+            rhat_ase = dok_matrix((num_genes, 1), np.float64)
             ds.layers['pi_pk'] = 'float64'
             ds.layers['pi_bk'] = 'float64'
             ds.layers['pi_mk'] = 'float64'
-            ds.layers['p_gk'] = 'float64'
+            ds.layers['p_k'] = 'float64'
         else:
             raise NotImplementedError  # Add initiation for new ASE models here!!
 
         # Initialize storage for TGX results
         if model[1] == 'pg':
-            ds.ra['alpha_tgx1'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['alpha_tgx2'] = dok_matrix((num_genes, 1), np.float64)
-            ds.ra['Rhat_tgx'] = dok_matrix((num_genes, 1), np.float64)
-            ds.layers['lambda_gk'] = 'float64'
+            alpha_tgx1 = dok_matrix((num_genes, 1), np.float64)
+            alpha_tgx2 = dok_matrix((num_genes, 1), np.float64)
+            rhat_tgx = dok_matrix((num_genes, 1), np.float64)
+            ds.layers['lambda_k'] = 'float64'
         else:
             raise NotImplementedError  # Add initiation for new TGX models here!!
 
@@ -141,44 +141,66 @@ def collate(indir, loomfile, filetype, filename, model):
                 g_fitting = g_results.item()
                 LOG.warn('Storing the fitting results of %s [%s]' % (g_key, ds.ra['gsymb'][cur_gid]))
 
-                # Store ASE results
+                # Process ASE results
                 if model[0] == 'zoibb':
                     LOG.info('Writing the ASE results by ZOIBB model')
-                    ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
-                    ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
-                    ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
-                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.3f %.3f %.3f ]' % (g_fitting['ase'][1, 0], g_fitting['ase'][2, 0], g_fitting['ase'][0, 0]))
-                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.3f %.3f %.3f ]' % (ds.ra['pi_P'][cur_gid], ds.ra['pi_B'][cur_gid], ds.ra['pi_M'][cur_gid]))
-                    ds.ra['alpha_ase1'][cur_gid] = g_fitting['ase'][4, 0]
-                    ds.ra['alpha_ase2'][cur_gid] = g_fitting['ase'][5, 0]
+                    pi_m[cur_gid] = g_fitting['ase'][0, 0]
+                    pi_p[cur_gid] = g_fitting['ase'][1, 0]
+                    pi_b[cur_gid] = g_fitting['ase'][2, 0]
+                    LOG.debug('[ pi_p, pi_b, pi_m ] = [ %.3f %.3f %.3f ]' % (g_fitting['ase'][1, 0], g_fitting['ase'][2, 0], g_fitting['ase'][0, 0]))
+                    alpha_ase1[cur_gid] = g_fitting['ase'][4, 0]
+                    alpha_ase2[cur_gid] = g_fitting['ase'][5, 0]
                     LOG.debug('[ alpha_ase1, alpha_ase2 ] = [ %.3f %.3f ]' % (g_fitting['ase'][4, 0], g_fitting['ase'][5, 0]))
-                    ds.ra['Rhat_ase'][cur_gid] = g_fitting['ase'][-1, -1]
+                    rhat_ase[cur_gid] = g_fitting['ase'][-1, -1]
                     LOG.debug('Rhat_ase = %.3f' % g_fitting['ase'][-1, -1])
                     # Get ASE point estimation
-                    pi_gk = g_fitting['ase'][6+num_cells:6+num_cells*4, 0].reshape(3, num_cells)
-                    cur_theta = np.zeros(shape=pi_gk.shape)
-                    alpha_mono = g_fitting['ase'][3, 0]
-                    ds.ra['alpha_mono'][cur_gid] = alpha_mono
+                    pi_k = g_fitting['ase'][6+num_cells:6+num_cells*4, 0].reshape(3, num_cells)
+                    ds.layers['pi_mk'][cur_gid, :] = pi_k[0]
+                    ds.layers['pi_pk'][cur_gid, :] = pi_k[1]
+                    ds.layers['pi_bk'][cur_gid, :] = pi_k[2]
+                    cur_theta = np.zeros(shape=pi_k.shape)
+                    cur_alpha_mono = g_fitting['ase'][3, 0]
+                    alpha_mono[cur_gid] = cur_alpha_mono
                     LOG.debug('alpha_mono = %.3f' % g_fitting['ase'][3, 0])
-                    cur_theta[0] = alpha_mono/(alpha_mono+1)
-                    cur_theta[1] = 1/(alpha_mono+1)
+                    cur_theta[0] = cur_alpha_mono/(cur_alpha_mono+1)
+                    cur_theta[1] = 1/(cur_alpha_mono+1)
                     cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
-                    ds.layers['p_gk'][cur_gid, :] = (pi_gk * cur_theta).sum(axis=0)
+                    ds.layers['p_k'][cur_gid, :] = (pi_k * cur_theta).sum(axis=0)
                 else:  # Add handling of new ASE models here!!
                     raise NotImplementedError
 
-                # Store TGX results
+                # Process TGX results
                 if model[1] == 'pg':
                     LOG.info('Writing the TGX results by PG model')
                     # Get TGX point estimation
-                    ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
-                    ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
+                    alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
+                    alpha_tgx2[cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
                     LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.3f %.3f ]' % (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
-                    ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_gk
-                    ds.ra['Rhat_tgx'][cur_gid] = g_fitting['tgx'][-1, -1]
+                    ds.layers['lambda_k'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_k
+                    rhat_tgx[cur_gid] = g_fitting['tgx'][-1, -1]
                     LOG.debug('Rhat_tgx = %.3f' % g_fitting['tgx'][-1, -1])
                 else:  # Add handling of new TGX models here!!
                     raise NotImplementedError
+
+        # Store ASE results
+        if model[0] == 'zoibb':
+            ds.ra['pi_p'] = pi_p
+            ds.ra['pi_b'] = pi_b
+            ds.ra['pi_m'] = pi_m
+            ds.ra['alpha_mono'] = alpha_mono
+            ds.ra['alpha_ase1'] = alpha_ase1
+            ds.ra['alpha_ase2'] = alpha_ase2
+            ds.ra['Rhat_ase'] = rhat_ase
+        else:  # Add storing of new ASE models here!!
+            raise NotImplementedError
+
+        # Store TGX results
+        if model[1] == 'pg':
+            ds.ra['alpha_tgx1'] = alpha_tgx1
+            ds.ra['alpha_tgx2'] = alpha_tgx2
+            ds.ra['Rhat_tgx'] = rhat_tgx
+        else:  # Add storing of new TGX models here!!
+            raise NotImplementedError
         ds.close()
 
     elif filetype == "counts":
