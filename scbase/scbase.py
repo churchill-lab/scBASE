@@ -99,7 +99,7 @@ def collate(indir, loomfile, filetype, filename, model):
         elif filetype == 'counts':
             flist = glob.glob(os.path.join(indir, '*genes*counts'))
             LOG.info(os.path.join(indir, '*genes*counts'))
-    LOG.info('Found %d files' % len(flist))
+    LOG.info('Found %d file(s)' % len(flist))
 
     if filetype == 'params':
         ds = loompy.connect(loomfile)
@@ -138,22 +138,26 @@ def collate(indir, loomfile, filetype, filename, model):
             for g_key, g_results in curdata_fh.items():
                 cur_gid = gid[g_key]
                 g_fitting = g_results.item()
-                LOG.warn('Storing fitting results of %s [%s]' % (g_key, ds.ra['gsymb'][cur_gid]))
+                LOG.warn('Storing the fitting results of %s [%s]' % (g_key, ds.ra['gsymb'][cur_gid]))
 
                 # Store ASE results
                 if model[0] == 'zoibb':
-                    LOG.info('Writing ASE results')
-                    ds.ra['pi_M'][cur_gid] = g_fitting['ase'][0, 0]
-                    ds.ra['pi_P'][cur_gid] = g_fitting['ase'][1, 0]
-                    ds.ra['pi_B'][cur_gid] = g_fitting['ase'][2, 0]
-                    ds.ra['alpha_ase1'][cur_gid] = g_fitting['ase'][4, 0]
-                    ds.ra['alpha_ase2'][cur_gid] = g_fitting['ase'][5, 0]
-                    ds.ra['Rhat_ase'][cur_gid] = g_fitting['ase'][-1, -1]
+                    LOG.info('Writing the ASE results by ZOIBB model')
+                    ds.ra['pi_M'][cur_gid, 0] = g_fitting['ase'][0, 0]
+                    ds.ra['pi_P'][cur_gid, 0] = g_fitting['ase'][1, 0]
+                    ds.ra['pi_B'][cur_gid, 0] = g_fitting['ase'][2, 0]
+                    LOG.debug('[ pi_P, pi_B, pi_M ] = [ %.5f %.5f %.5f ]' % (g_fitting['ase'][0, 0], g_fitting['ase'][1, 0], g_fitting['ase'][2, 0]))
+                    ds.ra['alpha_ase1'][cur_gid, 0] = g_fitting['ase'][4, 0]
+                    ds.ra['alpha_ase2'][cur_gid, 0] = g_fitting['ase'][5, 0]
+                    LOG.debug('[ alpha_ase1, alpha_ase2 ] = [ %.5f %.5f ]' % (g_fitting['ase'][4, 0], g_fitting['ase'][5, 0]))
+                    ds.ra['Rhat_ase'][cur_gid, 0] = g_fitting['ase'][-1, -1]
+                    LOG.debug('Rhat_ase = %.5f' % g_fitting['ase'][-1, -1])
                     # Get ASE point estimation
                     pi_gk = g_fitting['ase'][6+num_cells:6+num_cells*4, 0].reshape(3, num_cells)
                     cur_theta = np.zeros(shape=pi_gk.shape)
                     alpha_mono = g_fitting['ase'][3, 0]
-                    ds.ra['alpha_mono'][cur_gid] = alpha_mono
+                    ds.ra['alpha_mono'][cur_gid, 0] = alpha_mono
+                    LOG.debug('alpha_mono = %.5f' % g_fitting['ase'][3, 0])
                     cur_theta[0] = alpha_mono/(alpha_mono+1)
                     cur_theta[1] = 1/(alpha_mono+1)
                     cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
@@ -163,12 +167,14 @@ def collate(indir, loomfile, filetype, filename, model):
 
                 # Store TGX results
                 if model[1] == 'pg':
-                    LOG.info('Writing TGX results')
+                    LOG.info('Writing the TGX results by PG model')
                     # Get TGX point estimation
-                    ds.ra['alpha_tgx1'][cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
-                    ds.ra['alpha_tgx2'][cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
+                    ds.ra['alpha_tgx1'][cur_gid, 0] = g_fitting['tgx'][0, 0]  # two alphas
+                    ds.ra['alpha_tgx2'][cur_gid, 0] = g_fitting['tgx'][1, 0]  # two alphas
+                    LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.5f %.5f ]' % (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
                     ds.layers['lambda_gk'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_gk
-                    ds.ra['Rhat_tgx'][cur_gid] = g_fitting['tgx'][-1, -1]
+                    ds.ra['Rhat_tgx'][cur_gid, 0] = g_fitting['tgx'][-1, -1]
+                    LOG.debug('Rhat_tgx = %.5f' % g_fitting['tgx'][-1, -1])
                 else:  # Add handling of new TGX models here!!
                     raise NotImplementedError
         ds.close()
