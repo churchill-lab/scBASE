@@ -5,7 +5,7 @@ conda activate scbase
 cd $PBS_O_WORKDIR
 
 scbase run_mcmc -m ${ASE_MODEL} ${TGX_MODEL} \
-                --hapcode ${HAPCODE1} ${HAPCODE2} \
+                --hapcode ${MAT_HAPCODE} ${PAT_HAPCODE} \
                 -s ${START} -e ${END} \
                 -o ${OUTDIR} \
                 ${LOOMFILE}
