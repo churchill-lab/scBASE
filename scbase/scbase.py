@@ -132,8 +132,8 @@ def collate(indir, loomfile, filetype, filename, model):
         for cix, f in enumerate(flist):
             new_column = np.loadtxt(f, skiprows=1, usecols=(-1,))
             cellID = clist[cix]
-            ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID},
-                           col_attrs={'CellID': np.array([cellID]), 'size': np.array([new_column.sum()])})
+            ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID.astype(str)},
+                           col_attrs={'CellID': np.array([cellID], dtype=str), 'size': np.array([new_column.sum()])})
             LOG.info('TGX loaded from %s' % f)
         LOG.warn('Populating loom file with ASE')
         for hix, h in enumerate(hapcodes):
