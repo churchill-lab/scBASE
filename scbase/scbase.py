@@ -135,8 +135,6 @@ def collate(indir, loomfile, filetype, filename, model):
             ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID},
                            col_attrs={'CellID': np.array([cellID]), 'size': np.array([new_column.sum()])})
             LOG.info('TGX loaded from %s' % f)
-        ds.close()
-        ds = loompy.connect(loomfile)
         LOG.warn('Populating loom file with ASE')
         for hix, h in enumerate(hapcodes):
             LOG.info('Loading ASE for Haplotype %s' % h)
@@ -145,7 +143,7 @@ def collate(indir, loomfile, filetype, filename, model):
                 ds.layers[h][:, cix] = np.loadtxt(f, skiprows=1, usecols=(hix+1,))
                 LOG.info('ASE loaded from %s' % f)
         ds.close()
-        LOG.warn('Done. You are ready to run \'filter\' or \'run_mcmc\'')
+        LOG.warn('Done. You may want to add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
         flist = glob.glob(os.path.join(indir, '*.param.npz'))  # All the param files are assumed to be in indir

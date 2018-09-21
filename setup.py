@@ -106,6 +106,9 @@ setup(
     name='scbase',
     packages=find_packages(include=['scbase']),
     setup_requires=setup_requirements,
+    scripts=[
+        'scripts/submit-scbase',
+    ]
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/churchill-lab/scBASE',
