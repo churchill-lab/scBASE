@@ -90,24 +90,68 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
 
 
 def collate(indir, loomfile, filetype, filename, model):
-    if filename is not None:
-        flist = glob.glob(os.path.join(indir, filename))
-    else:
-        if filetype == 'params':
-            flist = glob.glob(os.path.join(indir, '*.param.npz'))
-            LOG.info(os.path.join(indir, '*.param.npz'))
-        elif filetype == 'counts':
-            flist = glob.glob(os.path.join(indir, '*genes*counts'))
-            LOG.info(os.path.join(indir, '*genes*counts'))
-    LOG.info('Found %d file(s)' % len(flist))
+    if model[0] == 'null' and model[1] == 'null':
+        raise RuntimeError('At least either of ASE or TGX model should be specified.')
 
-    if filetype == 'params':
+    if filetype == "counts":
+        # Get cell IDs
+        LOG.info('Searching subdirectories for cells at %s' % indir)
+        dlist = glob.glob(os.path.join(indir, '*/'))
+        if len(dlist) > 0:  # Assuming indir/cellID/filename
+            LOG.warn('%d subdirectories were found under %s' % (len(dlist), indir))
+            clist = [os.path.basename(d.rstrip('/')) for d in dlist]
+            clist.sort()
+            flist = [os.path.join(indir, c, filename) for c in clist]
+            for f in flist:
+                if not os.path.exists(f):
+                    raise FileNotFoundError('%s does not exist' % f)
+        else:  # If a subdirectory for each cell does not exist
+            LOG.warn('No subdirectories were found under %s' % indir)
+            LOG.warn('Looking %s directly for count files...' % indir)
+            flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
+            if len(flist) > 0:
+                LOG.warn('%d files were found under %s' % (len(flist), indir))
+                flist.sort()
+                clist = [os.path.basename(f).split('.')[0] for f in flist]  # Assuming basename is cell ID
+            else:
+                raise FileNotFoundError('No files to collate')
+        if len(clist) != len(flist):
+            raise RuntimeError('The numbers of files and cells do not match')
+
+        f = flist[0]
+        with open(f) as fh:
+            curline = fh.readline()
+            item = curline.rstrip().split('\t')
+            hapcodes = item[1:-1]
+        geneID = np.loadtxt(f, dtype=str, skiprows=1, usecols=0)
+        ds = loompy.new(loomfile)
+        for cix, f in enumerate(flist):
+            new_column = np.loadtxt(f, skiprows=1, usecols=(-1,))
+            cellID = clist[cix]
+            ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID},
+                           col_attrs={'CellID': np.array([cellID]), 'size': np.array([new_column.sum()])})
+        for hix, h in enumerate(hapcodes):
+            ds.layers[h] = 'float64'
+            for cix, f in enumerate(flist):
+                ds.layers[h][:, cix] = np.loadtxt(f, skiprows=1, usecols=(hix+1,))
+        ds.close()
+
+    elif filetype == 'params':
+        flist = glob.glob(os.path.join(indir, '*.param.npz'))  # All the param files are assumed to be in indir
+        LOG.info(os.path.join(indir, '*.param.npz'))  # filename is not used in collate --params
+        if len(flist) < 1:
+            raise FileNotFoundError('No param files to collate')
+        else:
+            LOG.info('Found %d param file(s)' % len(flist))
+
         ds = loompy.connect(loomfile)
         gid = dict(zip(ds.row_attrs['GeneID'], np.arange(ds.shape[0])))
         num_genes, num_cells = ds.shape
 
         # Initialize storage for ASE results
-        if model[0] == 'zoibb':
+        if model[0] == 'null':
+            LOG.warn('ASE model will not run')
+        elif model[0] == 'zoibb':
             pi_p = dok_matrix((num_genes, 1), np.float64)
             pi_b = dok_matrix((num_genes, 1), np.float64)
             pi_m = dok_matrix((num_genes, 1), np.float64)
@@ -119,22 +163,25 @@ def collate(indir, loomfile, filetype, filename, model):
             ds.layers['pi_bk'] = 'float64'
             ds.layers['pi_mk'] = 'float64'
             ds.layers['p_k'] = 'float64'
+        # Add initiation for new ASE models here!!
         else:
-            raise NotImplementedError  # Add initiation for new ASE models here!!
+            raise NotImplementedError('%s model does not exist' % model[0])
 
         # Initialize storage for TGX results
-        if model[1] == 'pg':
+        if model[1] == 'null':
+            LOG.warn('TGX model will not run')
+        elif model[1] == 'pg':
             alpha_tgx1 = dok_matrix((num_genes, 1), np.float64)
             alpha_tgx2 = dok_matrix((num_genes, 1), np.float64)
             rhat_tgx = dok_matrix((num_genes, 1), np.float64)
             ds.layers['lambda_k'] = 'float64'
+        # Add initiation for new TGX models here!!
         else:
-            raise NotImplementedError  # Add initiation for new TGX models here!!
+            raise NotImplementedError('%s model does not exist' % model[1])
 
         for f in flist:
             LOG.warn('Loading %s' % f)
             curdata_fh = np.load(f)
-            #curdata = curdata_fh.item()
             for g_key, g_results in curdata_fh.items():
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
@@ -142,7 +189,9 @@ def collate(indir, loomfile, filetype, filename, model):
                 LOG.warn('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
-                if model[0] == 'zoibb':
+                if model[0] == 'null':
+                    pass
+                elif model[0] == 'zoibb':
                     LOG.info('Writing the ASE results by ZOIBB model')
                     pi_m[cur_gid] = g_fitting['ase'][0, 0]
                     pi_p[cur_gid] = g_fitting['ase'][1, 0]
@@ -168,11 +217,14 @@ def collate(indir, loomfile, filetype, filename, model):
                     cur_theta[1] = 1/(cur_alpha_mono+1)
                     cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
                     ds.layers['p_k'][cur_gid, :] = (pi_k * cur_theta).sum(axis=0)
-                else:  # Add handling of new ASE models here!!
-                    raise NotImplementedError
+                # Add handling of new ASE models here!!
+                else:
+                    raise NotImplementedError('scBASE does not know how to process %s model results' % model[0])
 
                 # Process TGX results
-                if model[1] == 'pg':
+                if model[1] == 'null':
+                    pass
+                elif model[1] == 'pg':
                     LOG.info('Writing the TGX results by PG model')
                     # Get TGX point estimation
                     alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
@@ -182,11 +234,14 @@ def collate(indir, loomfile, filetype, filename, model):
                     ds.layers['lambda_k'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_k
                     rhat_tgx[cur_gid] = g_fitting['tgx'][-1, -1]
                     LOG.debug('Rhat_tgx = %.3f' % g_fitting['tgx'][-1, -1])
-                else:  # Add handling of new TGX models here!!
-                    raise NotImplementedError
+                # Add handling of new TGX models here!!
+                else:
+                    raise NotImplementedError('scBASE does not know how to process %s model results' % model[1])
 
         # Store ASE results
-        if model[0] == 'zoibb':
+        if model[0] == 'null':
+            pass
+        elif model[0] == 'zoibb':
             ds.ra['pi_p'] = pi_p
             ds.ra['pi_b'] = pi_b
             ds.ra['pi_m'] = pi_m
@@ -194,20 +249,23 @@ def collate(indir, loomfile, filetype, filename, model):
             ds.ra['alpha_ase1'] = alpha_ase1
             ds.ra['alpha_ase2'] = alpha_ase2
             ds.ra['Rhat_ase'] = rhat_ase
-        else:  # Add storing of new ASE models here!!
-            raise NotImplementedError
+        # Add storing of new ASE models here!!
+        else:
+            raise NotImplementedError('scBASE does not know how to store %s model results' % model[0])
 
         # Store TGX results
-        if model[1] == 'pg':
+        if model[1] == 'null':
+            pass
+        elif model[1] == 'pg':
             ds.ra['alpha_tgx1'] = alpha_tgx1
             ds.ra['alpha_tgx2'] = alpha_tgx2
             ds.ra['Rhat_tgx'] = rhat_tgx
-        else:  # Add storing of new TGX models here!!
-            raise NotImplementedError
+        # Add storing of new TGX models here!!
+        else:
+            raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
 
-    elif filetype == "counts":
-        pass
-
+    else:
+        raise RuntimeError('filetype option should be either of --counts or --params')
 
 
