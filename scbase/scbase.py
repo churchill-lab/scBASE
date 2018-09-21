@@ -98,7 +98,7 @@ def collate(indir, loomfile, filetype, filename, model):
         LOG.info('Searching subdirectories for cells at %s' % indir)
         dlist = glob.glob(os.path.join(indir, '*/'))
         if len(dlist) > 0:  # Assuming indir/cellID/filename
-            LOG.warn('%d subdirectories were found under %s' % (len(dlist), indir))
+            LOG.warn('%d subdirectories were found' % len(dlist))
             clist = [os.path.basename(d.rstrip('/')) for d in dlist]
             clist.sort()
             flist = [os.path.join(indir, c, filename) for c in clist]
@@ -106,8 +106,8 @@ def collate(indir, loomfile, filetype, filename, model):
                 if not os.path.exists(f):
                     raise FileNotFoundError('%s does not exist. Consider providing a full file name' % f)
         else:  # If a subdirectory for each cell does not exist
-            LOG.warn('No subdirectories were found under %s' % indir)
-            LOG.warn('Looking %s directly for count files...' % indir)
+            LOG.warn('No subdirectories were found')
+            LOG.warn('Looking at %s directly for count files...' % indir)
             flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
             if len(flist) > 0:
                 LOG.warn('%d files were found under %s' % (len(flist), indir))
@@ -123,18 +123,29 @@ def collate(indir, loomfile, filetype, filename, model):
             curline = fh.readline()
             item = curline.rstrip().split('\t')
             hapcodes = item[1:-1]
+        LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
         geneID = np.loadtxt(f, dtype=str, skiprows=1, usecols=0)
+        LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
         ds = loompy.new(loomfile)
+        LOG.warn('A new loom file created: %s' % loomfile)
+        LOG.warn('Populating loom file with TGX')
         for cix, f in enumerate(flist):
             new_column = np.loadtxt(f, skiprows=1, usecols=(-1,))
             cellID = clist[cix]
             ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID},
                            col_attrs={'CellID': np.array([cellID]), 'size': np.array([new_column.sum()])})
+            LOG.info('TGX loaded from %s' % f)
+        ds.close()
+        ds = loompy.connect(loomfile)
+        LOG.warn('Populating loom file with ASE')
         for hix, h in enumerate(hapcodes):
+            LOG.info('Loading ASE for Haplotype %s' % h)
             ds.layers[h] = 'float64'
             for cix, f in enumerate(flist):
                 ds.layers[h][:, cix] = np.loadtxt(f, skiprows=1, usecols=(hix+1,))
+                LOG.info('ASE loaded from %s' % f)
         ds.close()
+        LOG.warn('Done. You are ready to run \'filter\' or \'run_mcmc\'')
 
     elif filetype == 'params':
         flist = glob.glob(os.path.join(indir, '*.param.npz'))  # All the param files are assumed to be in indir
