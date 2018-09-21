@@ -104,7 +104,7 @@ def collate(indir, loomfile, filetype, filename, model):
             flist = [os.path.join(indir, c, filename) for c in clist]
             for f in flist:
                 if not os.path.exists(f):
-                    raise FileNotFoundError('%s does not exist' % f)
+                    raise FileNotFoundError('%s does not exist. Consider providing a full file name' % f)
         else:  # If a subdirectory for each cell does not exist
             LOG.warn('No subdirectories were found under %s' % indir)
             LOG.warn('Looking %s directly for count files...' % indir)
