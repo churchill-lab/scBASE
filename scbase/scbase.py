@@ -104,28 +104,33 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         LOG.warn('The number of selected genes: %d' % num_gsurv)
         LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
 
-    for idx in xrange(0, num_gsurv, chunk):
-        start = gsurv[idx]
-        end = gsurv[min(idx+chunk, num_gsurv-1)]
-        job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTDIR=%s,LOOMFILE=%s' % \
-                  (model[0], model[1], hapcode[0], hapcode[1], start, end, outdir, loomfile)
-        cmd = ['qsub']
-        if email is not None:
-            cmd += ['-M', email]
-        if queue is not None:
-            cmd += ['-q', queue]
-        if mem > 0:
-            cmd += ['-l', 'mem=%d' % mem]
-        if walltime > 0:
-            cmd += ['-l', 'walltime=%d:00:00' % walltime]
-        cmd += ['-v', job_par]
-        cmd += ['run_mcmc_on_cluster.sh']
-        if dryrun:
-            print(" ".join(cmd))
-        else:
-            call(cmd)
-            time.sleep(1.0)
-    LOG.warn('Job submission complete')
+    if systype == 'pbs':
+        for idx in xrange(0, num_gsurv, chunk):
+            start = gsurv[idx]
+            end = gsurv[min(idx+chunk, num_gsurv-1)]
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTDIR=%s,LOOMFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], start, end, outdir, loomfile)
+            cmd = ['qsub']
+            if email is not None:
+                cmd += ['-M', email]
+            if queue is not None:
+                cmd += ['-q', queue]
+            if mem > 0:
+                cmd += ['-l', 'mem=%d' % mem]
+            if walltime > 0:
+                cmd += ['-l', 'walltime=%d:00:00' % walltime]
+            cmd += ['-v', job_par]
+            cmd += ['run_mcmc_on_cluster.sh']
+            if dryrun:
+                print(" ".join(cmd))
+            else:
+                call(cmd)
+                time.sleep(1.0)
+        LOG.warn('Job submission complete')
+    elif 'lsf':
+        raise NotImplementedError('LSF submission is not yet supported')
+    else:
+        raise RuntimeError('No plan to support other job scheduling system until we see many requests')
 
 
 def collate(indir, loomfile, filetype, filename, model):

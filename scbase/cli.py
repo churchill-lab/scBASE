@@ -61,7 +61,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir, verbose):
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-c', '--chunk', metavar='<chunk_size>', type=int, default=25, help='Chunk size')
 @click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.')
-@click.option('--systype', metavar='<systype>', default='pbs', help='Type of HPC cluster system')
+@click.option('--systype', metavar='<systype>', default='pbs', help='Type of HPC cluster system (default: pbs)')
 @click.option('--email', metavar='<email>', type=str, default=None, help='Notification E-mail')
 @click.option('--queue', metavar='<queue>', type=str, default=None, help='Queue name')
 @click.option('--mem', metavar='<mem>', type=int, default=0, help='Memory in GB (default: 16GB)')
