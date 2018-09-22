@@ -7,11 +7,13 @@ from . import utils
 from . import get_data
 from past.builtins import xrange
 import os
+import time
 import glob
 import numpy as np
 from scipy.sparse import dok_matrix
 import loompy
 import pystan
+from subprocess import call
 try:
     import cPickle as pickle
 except:
@@ -84,9 +86,46 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             param[ds.row_attrs['GeneID'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
-    outfile = os.path.join(outdir, 'scbase.%d-%d.param.npz' % (start, end))
+    outfile = os.path.join(outdir, 'scbase.%5d-%5d.param.npz' % (start, end))
     np.savez_compressed(outfile, **param)
     ds.close()
+
+
+def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun):
+    LOG.warn('Loom file: %s' % loomfile)
+    LOG.warn('Models: %s, %s' % (model[0], model[1]))
+    LOG.warn('HPC system type: %s' % systype)
+    if dryrun:
+        LOG.warn('Showing submission script only')
+
+    with loompy.connect(loomfile) as ds:
+        gsurv = np.where(ds.ra.selected)[0]
+        num_gsurv = len(gsurv)
+        LOG.warn('The number of selected genes: %d' % num_gsurv)
+        LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
+
+    for idx in xrange(0, num_gsurv, chunk):
+        start = gsurv[idx]
+        end = gsurv[min(idx+chunk, num_gsurv-1)]
+        job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTDIR=%s,LOOMFILE=%s' % \
+                  (model[0], model[1], hapcode[0], hapcode[1], start, end, outdir, loomfile)
+        cmd = ['qsub']
+        if email is not None:
+            cmd += ['-M', email]
+        if queue is not None:
+            cmd += ['-q', queue]
+        if mem > 0:
+            cmd += ['-l', 'mem=%d' % mem]
+        if walltime > 0:
+            cmd += ['-l', 'walltime=%d:00:00' % walltime]
+        cmd += ['-v', job_par]
+        cmd += ['run_mcmc_on_cluster.sh']
+        if dryrun:
+            print(" ".join(cmd))
+        else:
+            call(cmd)
+            time.sleep(1.0)
+    LOG.warn('Job submission complete')
 
 
 def collate(indir, loomfile, filetype, filename, model):

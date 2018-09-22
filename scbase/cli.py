@@ -35,17 +35,17 @@ def disambiguate(alnfile, start, end, verbose):
 
 @main.command()
 @click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-s', '--start', metavar='<gix_start>', type=int, default=0, help='Starting gene (row index)')
 @click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
-@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_mcmc(loomfile, model, hapcode, start, end, outdir, verbose):
     """MCMC script for scBASE
     :param loomfile:
-    :param model:
     :param hapcode:
+    :param model:
     :param start:
     :param end:
     :param outdir:
@@ -53,6 +53,24 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir, verbose):
     """
     utils.configure_logging(verbose)
     scbase.run_mcmc(loomfile, model, hapcode, start, end, outdir)
+
+
+@main.command()
+@click.argument('loomfile', metavar='<loomfile>', type=click.Path(dir_okay=False))
+@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
+@click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
+@click.option('-c', '--chunk', metavar='<chunk_size>', type=int, default=25, help='Chunk size')
+@click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.')
+@click.option('--systype', metavar='<systype>', default='pbs', help='Type of HPC cluster system')
+@click.option('--email', metavar='<email>', type=str, default=None, help='Notification E-mail')
+@click.option('--queue', metavar='<queue>', type=str, default=None, help='Queue name')
+@click.option('--mem', metavar='<mem>', type=int, default=0, help='Memory in GB (default: 16GB)')
+@click.option('--walltime', metavar='<walltime>', type=int, default=0, help='Walltime in hours (default: 24h')
+@click.option('--dryrun', is_flag=True)
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
+    utils.configure_logging(verbose)
+    scbase.submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun)
 
 
 @main.command()
