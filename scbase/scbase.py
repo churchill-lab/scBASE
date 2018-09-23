@@ -27,11 +27,11 @@ except NameError:
     xrange = range
 
 
-def disambiguate(alntools_file, start, end):
+def disambiguate(alnfile, start, end):
     LOG.warn('Quantifying allele-specific expression in each cell')
-    LOG.info('Level-1 verbose')
-    LOG.debug('Level-2 verbose')
-    print(get_data('README'))
+    LOG.info('Verbose level 1 [ON]')
+    LOG.debug('Verbose level 2 [ON]')
+    raise NotImplementedError('Coming soon once alntools and emase-zero projects are completed.')
 
 
 def __mcmc_ase(x, n, model):
@@ -120,10 +120,11 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             if walltime > 0:
                 cmd += ['-l', 'walltime=%d:00:00' % walltime]
             cmd += ['-v', job_par]
-            cmd += ['run_mcmc_on_cluster.sh']
+            cmd += [os.path.join(os.path.dirname(os.environ['_']), 'run_mcmc_on_cluster.sh')]
             if dryrun:
                 print(" ".join(cmd))
             else:
+                LOG.info(" ".join(cmd))
                 call(cmd)
                 time.sleep(1.0)
         LOG.warn('Job submission complete')

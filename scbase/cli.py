@@ -18,7 +18,7 @@ def main(args=None):
 
 
 @main.command()
-@click.argument('alntools_file', metavar='<alnfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.argument('alnfile', metavar='<alnfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
 @click.option('--start', metavar='<cix_start>', type=int, default=0, help='Starting cell (column index)')
 @click.option('--end', metavar='<cix_end>', type=int, default=None, help='Ending cell (column index)')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
