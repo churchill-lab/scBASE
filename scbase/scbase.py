@@ -158,6 +158,8 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             end = gsurv[idx_end]
+            if idx_end == num_gsurv-1:
+                end += 1
             LOG.info('Start: %d, End %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
             data_dict = dict()
