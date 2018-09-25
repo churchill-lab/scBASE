@@ -99,22 +99,24 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     if dryrun:
         LOG.warn('Showing submission script only')
 
-    ds = loompy.connect(loomfile)
-    gsurv = np.where(ds.ra.selected)[0]
-    num_gsurv = len(gsurv)
-    LOG.warn('The number of selected genes: %d' % num_gsurv)
-    LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
+    with loompy.connect(loomfile) as ds:
+        gsurv = np.where(ds.ra.selected)[0]
+        num_gsurv = len(gsurv)
+        LOG.warn('The number of selected genes: %d' % num_gsurv)
+        LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
 
     if systype == 'pbs':
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             end = gsurv[idx_end]
-            infile = os.path.join(outdir, '_chunk.%d-%d.loom' % (start, end))
+            LOG.info()
+            infile = os.path.join(outdir, '_chunk.%05d-%05d.loom' % (start, end))
             genes = gsurv[idx_start:idx_end]
-            with loompy.new(infile) as dsout:
-                for (ix, selection, view) in ds.scan(items=genes, axis=0):
-                    dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
+            with loompy.connect(loomfile) as ds:
+                with loompy.new(infile) as dsout:
+                    for (ix, selection, view) in ds.scan(items=genes, axis=0):
+                        dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,LOOMFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
@@ -140,7 +142,6 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         raise NotImplementedError('LSF submission is not yet supported')
     else:
         raise RuntimeError('No plan to support other job scheduling system until we see many requests')
-    ds.close()
 
 
 def collate(indir, loomfile, filetype, filename, model):
