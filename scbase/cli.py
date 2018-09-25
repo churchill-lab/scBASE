@@ -39,20 +39,20 @@ def disambiguate(alnfile, start, end, verbose):
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-s', '--start', metavar='<gix_start>', type=int, default=0, help='Starting gene (row index)')
 @click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
-@click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.')
+@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False), default=None)
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def run_mcmc(loomfile, model, hapcode, start, end, outdir, verbose):
+def run_mcmc(loomfile, model, hapcode, start, end, outfile, verbose):
     """MCMC script for scBASE
     :param loomfile:
     :param hapcode:
     :param model:
     :param start:
     :param end:
-    :param outdir:
+    :param outfile:
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.run_mcmc(loomfile, model, hapcode, start, end, outdir)
+    scbase.run_mcmc(loomfile, model, hapcode, start, end, outfile)
 
 
 @main.command()

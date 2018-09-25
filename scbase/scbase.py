@@ -48,7 +48,7 @@ def __mcmc_tgx(n, c, model):
     return fit_tgx
 
 
-def run_mcmc(loomfile, model, hapcode, start, end, outdir):
+def run_mcmc(loomfile, model, hapcode, start, end, outfile):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -86,7 +86,8 @@ def run_mcmc(loomfile, model, hapcode, start, end, outdir):
             param[ds.row_attrs['GeneID'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
-    outfile = os.path.join(outdir, 'scbase.%5d-%5d.param.npz' % (start, end))
+    if outfile is None:
+        outfile = 'scbase.%5d-%5d.param.npz' % (start, end)
     np.savez_compressed(outfile, **param)
     ds.close()
 
@@ -98,18 +99,25 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     if dryrun:
         LOG.warn('Showing submission script only')
 
-    with loompy.connect(loomfile) as ds:
-        gsurv = np.where(ds.ra.selected)[0]
-        num_gsurv = len(gsurv)
-        LOG.warn('The number of selected genes: %d' % num_gsurv)
-        LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
+    ds = loompy.connect(loomfile)
+    gsurv = np.where(ds.ra.selected)[0]
+    num_gsurv = len(gsurv)
+    LOG.warn('The number of selected genes: %d' % num_gsurv)
+    LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
 
     if systype == 'pbs':
-        for idx in xrange(0, num_gsurv, chunk):
-            start = gsurv[idx]
-            end = gsurv[min(idx+chunk, num_gsurv-1)]
-            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTDIR=%s,LOOMFILE=%s' % \
-                      (model[0], model[1], hapcode[0], hapcode[1], start, end, outdir, loomfile)
+        for idx_start in xrange(0, num_gsurv, chunk):
+            idx_end = min(idx_start+chunk, num_gsurv-1)
+            start = gsurv[idx_start]
+            end = gsurv[idx_end]
+            infile = os.path.join(outdir, '_chunk.%d-%d.loom' % (start, end))
+            genes = gsurv[idx_start:idx_end]
+            with loompy.new(infile) as dsout:
+                for (ix, selection, view) in ds.scan(items=genes, axis=0):
+                    dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
+            outfile = os.path.join(outdir, 'scase.%d-%d.param.npz' % (start, end))
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,LOOMFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
             if email is not None:
                 cmd += ['-M', email]
@@ -132,6 +140,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         raise NotImplementedError('LSF submission is not yet supported')
     else:
         raise RuntimeError('No plan to support other job scheduling system until we see many requests')
+    ds.close()
 
 
 def collate(indir, loomfile, filetype, filename, model):
