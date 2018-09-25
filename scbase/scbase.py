@@ -162,10 +162,10 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
             data_dict = dict()
             genes = gsurv[idx_start:idx_end]
-            data_dict['GeneID'] = ds.ra.GeneID[genes]
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             data_dict['shape'] = (len(genes), num_cells)
             with loompy.connect(loomfile) as ds:
+                data_dict['GeneID'] = ds.ra.GeneID[genes]
                 cur_chunk = dict()
                 cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
                 cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
