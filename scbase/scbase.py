@@ -110,12 +110,14 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             end = gsurv[idx_end]
-            LOG.info()
+            LOG.info('Start: %d, End %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.loom' % (start, end))
             genes = gsurv[idx_start:idx_end]
+            LOG.debug('Genes: %s' % ' '.join(genes))
             with loompy.connect(loomfile) as ds:
                 with loompy.new(infile) as dsout:
                     for (ix, selection, view) in ds.scan(items=genes, axis=0):
+                        LOG.debug('Genes in this view: %s' % ' '.join(selection))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,LOOMFILE=%s' % \
