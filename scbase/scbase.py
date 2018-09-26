@@ -34,6 +34,13 @@ def disambiguate(alnfile, start, end):
     raise NotImplementedError('Coming soon once alntools and emase-zero projects are completed.')
 
 
+def select(loomfile, min_read_count, min_cell_count, layer):
+    with loompy.connect(loomfile) as ds:
+        gsurv = (ds.sparse(layer=layer) >= min_read_count).sum(axis=1) > min_cell_count
+        ds.ra.Selected = np.squeeze(np.asarray(gsurv))
+        # totals = ds.map([np.sum], axis=1)[0]  # Select based upon cell size?
+
+
 def __mcmc_ase(x, n, model):
     data = {'N': len(n), 'n': n.astype('int'), 'x': x.astype('int')}
     fit_ase = model.sampling(data=data)

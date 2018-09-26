@@ -36,6 +36,26 @@ def disambiguate(alnfile, start, end, verbose):
 
 @main.command()
 @click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
+@click.option('--min-read-count', metavar='<min_read_count>', type=int, default=0, help='Min read count required')
+@click.option('--min-cell-count', metavar='<min_cell_count>', type=int, default=0, help='Min cell count required')
+@click.option('--layer', metavar='<layer_key>', type=str, default='', help='The layer to consider selection')
+@click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
+def select(loomfile, min_read_count, min_cell_count, layer, verbose):
+    """
+    Select genes if they are expressed at least <min_read_count> in at least <min_cell_count> cells
+    :param loomfile:
+    :param min_read_count:
+    :param min_cell_count:
+    :param layer:
+    :param verbose:
+    :return:
+    """
+    utils.configure_logging(verbose)
+    scbase.select(loomfile, min_read_count, min_cell_count, layer)
+
+
+@main.command()
+@click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, resolve_path=True, dir_okay=False))
 @click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-s', '--start', metavar='<gix_start>', type=int, default=0, help='Starting gene (row index)')
@@ -104,7 +124,7 @@ def run_em(datafile, model, hapcode, start, end, outfile, verbose):
 
 
 @main.command()
-@click.argument('loomfile', metavar='<loomfile>', type=click.Path(dir_okay=False))
+@click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, dir_okay=False))
 @click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
 @click.option('-c', '--chunk', metavar='<chunk_size>', type=int, default=25, help='Chunk size')
