@@ -64,15 +64,14 @@ def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile):
     if end is None:
         end = ds.shape[0]
     LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
-    libsz = ds.ca['size']
-    c = libsz / np.median(libsz)
+    c = ds.ca.Size / np.median(ds.ca.Size)
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
     tgx_layer = ''
     mat_layer = hapcode[0]
     for g in xrange(start, end):
-        if ds.ra['selected'][g]:
+        if ds.ra.Selected[g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['GeneID'][g])
             n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
@@ -108,7 +107,7 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile):
     if end is None:
         end = data_dict['shape'][0]
     LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
-    libsz = data_dict['size']
+    libsz = data_dict['Size']
     c = libsz / np.median(libsz)
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
@@ -117,7 +116,7 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile):
     mat_layer = hapcode[0]
     dmat_dict = data_dict['counts'].item()
     for g in xrange(start, end):
-        if data_dict['selected'][g]:
+        if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
             n = dmat_dict[tgx_layer][g]
             x = dmat_dict[mat_layer][g]
@@ -148,7 +147,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         LOG.warn('Showing submission script only')
 
     with loompy.connect(loomfile) as ds:
-        gsurv = np.where(ds.ra.selected)[0]
+        gsurv = np.where(ds.ra.Selected)[0]
         num_gsurv = len(gsurv)
         num_genes, num_cells = ds.shape
         LOG.warn('The number of selected genes: %d' % num_gsurv)
@@ -180,8 +179,8 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
                 cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
                 data_dict['counts'] = cur_chunk
-                data_dict['size'] = ds.ca.size
-                data_dict['selected'] = np.ones(len(genes))  # select all
+                data_dict['Size'] = ds.ca.Size
+                data_dict['Selected'] = np.ones(len(genes))  # select all
                 np.savez_compressed(infile, **data_dict)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
@@ -299,7 +298,7 @@ def collate(indir, loomfile, filetype, filename, model):
             new_column = np.loadtxt(f, skiprows=1, usecols=(-1,))
             cellID = clist[cix]
             ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID.astype(str)},
-                           col_attrs={'CellID': np.array([cellID], dtype=str), 'size': np.array([new_column.sum()])})
+                           col_attrs={'CellID': np.array([cellID], dtype=str), 'Size': np.array([new_column.sum()])})
             LOG.info('TGX loaded from %s' % f)
         LOG.warn('Populating loom file with ASE')
         for hix, h in enumerate(hapcodes):
