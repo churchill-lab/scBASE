@@ -164,7 +164,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             else:  #idx_end == num_gsurv-1:
                 end = num_genes
                 genes = gsurv[idx_start:]
-            LOG.info('Start: %d, End %d' % (start, end))
+            LOG.info('Chunk start: %d, end %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
@@ -213,7 +213,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             else:  #idx_end == num_gsurv-1:
                 end = num_genes
                 genes = gsurv[idx_start:]
-            LOG.info('Start: %d, End %d' % (start, end))
+            LOG.info('Chunk start: %d, end %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.loom' % (start, end))
             LOG.debug('Genes: %s' % ' '.join(genes.astype()))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
