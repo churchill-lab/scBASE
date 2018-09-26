@@ -146,7 +146,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     with loompy.connect(loomfile) as ds:
         gsurv = np.where(ds.ra.selected)[0]
         num_gsurv = len(gsurv)
-        num_cells = ds.shape[1]
+        num_genes, num_cells = ds.shape
         LOG.warn('The number of selected genes: %d' % num_gsurv)
         LOG.warn('The number of selected cells: %d' % num_cells)
         LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
@@ -158,13 +158,15 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
-            end = gsurv[idx_end]
-            #if idx_end == num_gsurv-1:
-            #    end += 1
+            if idx_end < num_gsurv:
+                end = gsurv[idx_end]
+                genes = gsurv[idx_start:idx_end]
+            else:  #idx_end == num_gsurv-1:
+                end = num_genes
+                genes = gsurv[idx_start:]
             LOG.info('Start: %d, End %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
             data_dict = dict()
-            genes = gsurv[idx_start:idx_end]
             processed += len(genes)
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
