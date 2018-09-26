@@ -158,7 +158,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
-            if idx_end < num_gsurv:
+            if idx_end < num_gsurv-1:
                 end = gsurv[idx_end]
                 genes = gsurv[idx_start:idx_end]
             else:  #idx_end == num_gsurv-1:
