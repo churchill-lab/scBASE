@@ -38,6 +38,7 @@ def select(loomfile, min_read_count, min_cell_count, layer):
     with loompy.connect(loomfile) as ds:
         gsurv = (ds.sparse(layer=layer) >= min_read_count).sum(axis=1) > min_cell_count
         ds.ra.Selected = np.squeeze(np.asarray(gsurv))
+        LOG.info('Total %d genes selected' % gsurv.sum())
         # totals = ds.map([np.sum], axis=1)[0]  # Select based upon cell size?
 
 
