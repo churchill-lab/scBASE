@@ -150,11 +150,11 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         LOG.warn('The number of selected genes: %d' % num_gsurv)
         LOG.warn('The number of selected cells: %d' % num_cells)
         LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
+    processed = 0
 
     if systype == 'pbs':
         tot_layer = ''
         mat_layer = hapcode[0]
-        processed = 0
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
@@ -166,10 +166,9 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 genes = gsurv[idx_start:]
             LOG.info('Start: %d, End %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
-            data_dict = dict()
-            processed += len(genes)
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
+            data_dict = dict()
             data_dict['shape'] = (len(genes), num_cells)
             with loompy.connect(loomfile) as ds:
                 data_dict['GeneID'] = ds.ra.GeneID[genes]
@@ -200,6 +199,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 LOG.info(" ".join(cmd))
                 call(cmd)
                 time.sleep(1.0)
+            processed += len(genes)
         LOG.debug('Total %d genes were submitted' % processed)
         LOG.warn('Job submission complete')
     elif systype == 'pbs-loom':
@@ -207,10 +207,16 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             end = gsurv[idx_end]
+            if idx_end < num_gsurv-1:
+                end = gsurv[idx_end]
+                genes = gsurv[idx_start:idx_end]
+            else:  #idx_end == num_gsurv-1:
+                end = num_genes
+                genes = gsurv[idx_start:]
             LOG.info('Start: %d, End %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.loom' % (start, end))
-            genes = gsurv[idx_start:idx_end]
             LOG.debug('Genes: %s' % ' '.join(genes.astype()))
+            LOG.debug('Total %d genes submitted in this job' % len(genes))
             with loompy.connect(loomfile) as ds:
                 with loompy.new(infile) as dsout:
                     for (ix, selection, view) in ds.scan(items=genes, axis=0):
@@ -236,6 +242,8 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 LOG.info(" ".join(cmd))
                 call(cmd)
                 time.sleep(1.0)
+            processed += len(genes)
+        LOG.debug('Total %d genes were submitted' % processed)
         LOG.warn('Job submission complete')
     elif 'lsf':
         raise NotImplementedError('LSF submission is not yet supported')
