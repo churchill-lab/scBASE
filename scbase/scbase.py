@@ -136,6 +136,10 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile):
     np.savez_compressed(outfile, **param)
 
 
+def run_em(datafile, model, hapcode, start, end, outfile):
+    raise NotImplementedError('EM algorithm is coming soon but we recommend using run_mcmc.')
+
+
 def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun):
     LOG.warn('Loom file: %s' % loomfile)
     LOG.warn('Models: %s, %s' % (model[0], model[1]))
@@ -438,5 +442,3 @@ def collate(indir, loomfile, filetype, filename, model):
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
-
-

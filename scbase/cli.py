@@ -23,7 +23,8 @@ def main(args=None):
 @click.option('--end', metavar='<cix_end>', type=int, default=None, help='Ending cell (column index)')
 @click.option('-v', '--verbose', count=True, help='the more times listed, the more output')
 def disambiguate(alnfile, start, end, verbose):
-    """Console script for scbase
+    """
+    Disambiguates multi-mapping reads
     :param alnfile:
     :param start:
     :param end:
@@ -43,7 +44,7 @@ def disambiguate(alnfile, start, end, verbose):
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile, verbose):
     """
-    MCMC script for scBASE (using loom file)
+    Run MCMC (using loom file)
     :param loomfile:
     :param hapcode:
     :param model:
@@ -66,7 +67,7 @@ def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile, verbose):
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_mcmc(datafile, model, hapcode, start, end, outfile, verbose):
     """
-    MCMC script for scBASE (using npz file)
+    Run MCMC (using npz file)
     :param datafile:
     :param hapcode:
     :param model:
@@ -77,6 +78,29 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile, verbose):
     """
     utils.configure_logging(verbose)
     scbase.run_mcmc(datafile, model, hapcode, start, end, outfile)
+
+
+@main.command()
+@click.argument('datafile', metavar='<npzfile>')
+@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
+@click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
+@click.option('-s', '--start', metavar='<gix_start>', type=int, default=0, help='Starting gene (row index)')
+@click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
+@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(resolve_path=True, dir_okay=False), default=None)
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def run_em(datafile, model, hapcode, start, end, outfile, verbose):
+    """
+    Run EM (using npz file)
+    :param datafile:
+    :param hapcode:
+    :param model:
+    :param start:
+    :param end:
+    :param outfile:
+    :param verbose:
+    """
+    utils.configure_logging(verbose)
+    scbase.run_em(datafile, model, hapcode, start, end, outfile)
 
 
 @main.command()
@@ -93,6 +117,22 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile, verbose):
 @click.option('--dryrun', is_flag=True)
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
+    """
+    Submit jobs to HPC clusters
+    :param loomfile:
+    :param model:
+    :param hapcode:
+    :param chunk:
+    :param outdir:
+    :param email:
+    :param queue:
+    :param mem:
+    :param walltime:
+    :param systype:
+    :param dryrun:
+    :param verbose:
+    :return:
+    """
     utils.configure_logging(verbose)
     scbase.submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun)
 
