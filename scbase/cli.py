@@ -76,7 +76,7 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile, verbose):
     :param verbose:
     """
     utils.configure_logging(verbose)
-    scbase.run_mcmc(datafile, model, hapcode, start, end, outfile, verbose)
+    scbase.run_mcmc(datafile, model, hapcode, start, end, outfile)
 
 
 @main.command()
