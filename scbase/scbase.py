@@ -361,13 +361,13 @@ def collate(indir, loomfile, filetype, filename, model):
             raise NotImplementedError('%s model does not exist' % model[1])
 
         for f in flist:
-            LOG.warn('Loading %s' % f)
+            LOG.info('Loading %s' % f)
             curdata_fh = np.load(f)
             for g_key, g_results in curdata_fh.items():
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
                 g_fitting = g_results.item()
-                LOG.warn('Storing the fitting results of %s' % g_key)
+                LOG.info('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
                 if model[0] == 'null':
@@ -418,6 +418,7 @@ def collate(indir, loomfile, filetype, filename, model):
                 # Add handling of new TGX models here!!
                 else:
                     raise NotImplementedError('scBASE does not know how to process %s model results' % model[1])
+            LOG.warn('Finished processing %s' % f)
 
         # Store ASE results
         if model[0] == 'null':
