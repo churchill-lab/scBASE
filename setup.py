@@ -24,8 +24,6 @@ requirements = ['numpy',
                 'Click>=6.0',
                 'pystan>=2.17',
                 'loompy>=2.0',
-#                'pandas',
-#                'scikit-learn',
                 'future',
                 'six']  # 'alntools>=0.1.0',
 setup_requirements = [ ]
