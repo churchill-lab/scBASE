@@ -9,6 +9,6 @@ scbase run_mcmc -m ${ASE_MODEL} ${TGX_MODEL} \
                 -s ${START} -e ${END} \
                 -o ${OUTFILE} \
                 ${INFILE}
-rm -rf ${INFILE}
+#rm -rf ${INFILE}
 
 source deactivate
