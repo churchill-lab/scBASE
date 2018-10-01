@@ -242,7 +242,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             processed += len(genes)
         LOG.debug('Total %d genes were submitted' % processed)
         LOG.warn('Job submission complete')
-    if systype == 'pbs-npz':
+    elif systype == 'pbs-npz':
         tot_layer = ''
         mat_layer = hapcode[0]
         for idx_start in xrange(0, num_gsurv, chunk):
