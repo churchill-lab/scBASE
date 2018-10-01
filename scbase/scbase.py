@@ -56,7 +56,7 @@ def __mcmc_tgx(n, c, model):
     return fit_tgx
 
 
-def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile):
+def run_mcmc(loomfile, model, hapcode, start, end, outfile):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -68,7 +68,7 @@ def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile):
     LOG.warn('TGX model file: %s' % get_data(model_file_tgx))
     stan_model_tgx = pickle.load(open(get_data(model_file_tgx), 'rb'))
     LOG.debug('TGX model code\n%s' % stan_model_tgx.model_code)
-    ds = loompy.connect(loomfile)
+    ds = loompy.connect(loomfile, 'r')
     if end is None:
         end = ds.shape[0]
     LOG.warn('Genes from %d to %d (0-based indexing)' % (start, end))
@@ -99,7 +99,7 @@ def run_mcmc_from_loom(loomfile, model, hapcode, start, end, outfile):
     ds.close()
 
 
-def run_mcmc(datafile, model, hapcode, start, end, outfile):
+def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     LOG.warn('Quantifying allele-specific expression in each cell')
     LOG.info('Level-1 verbose is on')
     LOG.debug('Level-2 verbose is also on')
@@ -122,7 +122,7 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile):
     processed = 0
     tgx_layer = ''
     mat_layer = hapcode[0]
-    dmat_dict = data_dict['counts'].item()
+    dmat_dict = data_dict['Counts'].item()
     for g in xrange(start, end):
         if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
@@ -154,7 +154,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     if dryrun:
         LOG.warn('Showing submission script only')
 
-    with loompy.connect(loomfile) as ds:
+    with loompy.connect(loomfile, 'r') as ds:
         gsurv = np.where(ds.ra.Selected)[0]
         num_gsurv = len(gsurv)
         num_genes, num_cells = ds.shape
@@ -164,8 +164,6 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     processed = 0
 
     if systype == 'pbs':
-        tot_layer = ''
-        mat_layer = hapcode[0]
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
@@ -176,23 +174,11 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 end = num_genes
                 genes = gsurv[idx_start:]
             LOG.info('Chunk start: %d, end %d' % (start, end))
-            infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
-            data_dict = dict()
-            data_dict['shape'] = (len(genes), num_cells)
-            with loompy.connect(loomfile) as ds:
-                data_dict['GeneID'] = ds.ra.GeneID[genes]
-                cur_chunk = dict()
-                cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
-                cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
-                data_dict['counts'] = cur_chunk
-                data_dict['Size'] = ds.ca.Size
-                data_dict['Selected'] = np.ones(len(genes))  # select all
-                np.savez_compressed(infile, **data_dict)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
-            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
-                      (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTFILE=%s,INFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], start, end, outfile, loomfile)
             cmd = ['qsub']
             if email is not None:
                 cmd += ['-M', email]
@@ -226,13 +212,63 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 genes = gsurv[idx_start:]
             LOG.info('Chunk start: %d, end %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.loom' % (start, end))
-            LOG.debug('Genes: %s' % ' '.join(genes.astype()))
+            LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
-            with loompy.connect(loomfile) as ds:
+            with loompy.connect(loomfile, 'r') as ds:
                 with loompy.new(infile) as dsout:
                     for (ix, selection, view) in ds.scan(items=genes, axis=0):
                         LOG.debug('Genes in this view: %s' % ' '.join(selection.astype()))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
+            outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
+            cmd = ['qsub']
+            if email is not None:
+                cmd += ['-M', email]
+            if queue is not None:
+                cmd += ['-q', queue]
+            if mem > 0:
+                cmd += ['-l', 'mem=%d' % mem]
+            if walltime > 0:
+                cmd += ['-l', 'walltime=%d:00:00' % walltime]
+            cmd += ['-v', job_par]
+            cmd += [os.path.join(os.path.dirname(os.environ['_']), 'run_mcmc_on_cluster.sh')]
+            if dryrun:
+                print(" ".join(cmd))
+            else:
+                LOG.info(" ".join(cmd))
+                call(cmd)
+                time.sleep(1.0)
+            processed += len(genes)
+        LOG.debug('Total %d genes were submitted' % processed)
+        LOG.warn('Job submission complete')
+    if systype == 'pbs-npz':
+        tot_layer = ''
+        mat_layer = hapcode[0]
+        for idx_start in xrange(0, num_gsurv, chunk):
+            idx_end = min(idx_start+chunk, num_gsurv-1)
+            start = gsurv[idx_start]
+            if idx_end < num_gsurv-1:
+                end = gsurv[idx_end]
+                genes = gsurv[idx_start:idx_end]
+            else:  #idx_end == num_gsurv-1:
+                end = num_genes
+                genes = gsurv[idx_start:]
+            LOG.info('Chunk start: %d, end %d' % (start, end))
+            infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
+            LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
+            LOG.debug('Total %d genes submitted in this job' % len(genes))
+            data_dict = dict()
+            data_dict['shape'] = (len(genes), num_cells)
+            with loompy.connect(loomfile, 'r') as ds:
+                data_dict['GeneID'] = ds.ra.GeneID[genes]
+                cur_chunk = dict()
+                cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
+                cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
+                data_dict['Counts'] = cur_chunk
+                data_dict['Size'] = ds.ca.Size
+                data_dict['Selected'] = np.ones(len(genes))  # select all
+                np.savez_compressed(infile, **data_dict)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)

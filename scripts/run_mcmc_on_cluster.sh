@@ -6,8 +6,8 @@ cd $PBS_O_WORKDIR
 
 scbase run_mcmc -m ${ASE_MODEL} ${TGX_MODEL} \
                 --hapcode ${MAT_HAPCODE} ${PAT_HAPCODE} \
+                -s ${START} -e ${END} \
                 -o ${OUTFILE} \
                 ${INFILE}
-rm -rf ${INFILE}
 
 source deactivate
