@@ -157,7 +157,7 @@ def __update_shape(sufficient, tol=0.000001, max_iters=100):
         if abs_err_max < tol:
             LOG.debug("__update_shape ran total of %d iterations (Max error=%.9f)" % (cur_iter+1, abs_err_max))
             break
-        LOG.debug('Iter# %d: Error = %.4f [argmax = %d]' % (cur_iter, abs_err_max, abs_err_arg))
+        LOG.debug('Iter #%04d: Error = %.4f [argmax = %d]' % (cur_iter, abs_err_max, abs_err_arg))
     return shape
 
 
