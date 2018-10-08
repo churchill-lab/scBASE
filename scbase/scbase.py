@@ -239,7 +239,9 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
     elif model[1] == 'pg':
         with loompy.connect(loomfile) as ds:
             num_genes, num_cells = ds.shape
+            LOG.info("Loading data from %s" % loomfile)
             origmat = ds.sparse().tocsr()
+            LOG.info("Processing data matrix")
             csurv = np.where(ds.ca.Selected > 0)[0]
             LOG.info('The number of selected cells: %d' % len(csurv))
             cntmat = origmat[:, csurv]
@@ -250,7 +252,9 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             gsurv = np.where(np.logical_and(gsurv1, gsurv2))[0]
             LOG.info('The number of selected genes: %d' % len(gsurv))
             cntmat = cntmat[gsurv, :]
+            LOG.info('Running EM algorithm for TGX')
             lambda_mat, mu, phi, err = __em_tgx(cntmat, scaler, percentile, tol, max_iters)
+            LOG.info('Saving results to %s' % loomfile)
             resmat = csr_matrix((origmat.shape))
             resmat.indptr[1:-1] = np.repeat(lambda_mat.indptr[1:-1], np.diff(gsurv))
             resmat.indptr[-1] = lambda_mat.indptr[-1]
@@ -269,6 +273,7 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             g_selected = dok_matrix((num_genes, 1), np.float64)
             g_selected[gsurv] = 1
             ds.ra['Selected:TGX:EM'] = g_selected
+        LOG.info("Finished EM for TGX")
     else:
         raise NotImplementedError('Only Gamma-Poisson model is available for TGX in run_em.')
 
