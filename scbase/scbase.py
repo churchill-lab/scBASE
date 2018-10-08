@@ -43,14 +43,14 @@ def select(loomfile, min_read_count, min_cell_count, layer):
         # totals = ds.map([np.sum], axis=1)[0]  # Select based upon cell size?
 
 
-def __mcmc_ase(x, n, model):
+def __mcmc4ase(x, n, model):
     data = {'N': len(n), 'n': n.astype('int'), 'x': x.astype('int')}
     fit_ase = model.sampling(data=data)
     LOG.debug(fit_ase)
     return fit_ase
 
 
-def __mcmc_tgx(n, c, model):
+def __mcmc4tgx(n, c, model):
     data = {'N': len(n), 'n': n.astype('int'), 'C':c}
     fit_tgx = model.sampling(data=data)
     LOG.debug(fit_tgx)
@@ -88,9 +88,9 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
-            cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase).summary()['summary']
+            cur_param['ase'] = __mcmc4ase(x, n, stan_model_ase).summary()['summary']
             LOG.warn('Fitting TGX with %s model' % model[1])
-            cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx).summary()['summary']
+            cur_param['tgx'] = __mcmc4tgx(n, c, stan_model_tgx).summary()['summary']
             param[ds.row_attrs['GeneID'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
@@ -133,9 +133,9 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
-            cur_param['ase'] = __mcmc_ase(x, n, stan_model_ase).summary()['summary']
+            cur_param['ase'] = __mcmc4ase(x, n, stan_model_ase).summary()['summary']
             LOG.warn('Fitting TGX with %s model' % model[1])
-            cur_param['tgx'] = __mcmc_tgx(n, c, stan_model_tgx).summary()['summary']
+            cur_param['tgx'] = __mcmc4tgx(n, c, stan_model_tgx).summary()['summary']
             param[data_dict['GeneID'][g]] = cur_param
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
@@ -161,7 +161,7 @@ def __update_shape(sufficient, tol=0.000001, max_iters=100):
     return shape
 
 
-def __em_tgx(cntmat, scaler, percentile, tol, max_iters):
+def __em4tgx(cntmat, scaler, percentile, tol, max_iters):
     cntmat_scaled = cntmat.copy()
     cntmat_scaled.data = cntmat_scaled.data / scaler[cntmat_scaled.indices]
     # libsz_scaled = np.squeeze(np.asarray(cntmat_scaled.sum(axis=0)))
@@ -194,10 +194,8 @@ def __em_tgx(cntmat, scaler, percentile, tol, max_iters):
         x_plus_mu.data += mu[ridx]
         lamb.data = x_plus_mu.data * p.data
         mean_lamb = np.squeeze(np.asarray(lamb.sum(axis=1))) / x_nnz
-
         log_lamb.data = digamma(x_plus_mu.data) + np.log(p.data)
         mean_log_lamb = np.squeeze(np.asarray(log_lamb.sum(axis=1))) / x_nnz
-
         suff = np.log(mean_lamb) - mean_log_lamb
 
         #
@@ -210,16 +208,16 @@ def __em_tgx(cntmat, scaler, percentile, tol, max_iters):
         # Check termination
         #
         err = np.abs(mu - mu_prev)
-        # err_max = np.max(err)
-        # err_arg = np.argmax(err)
         err_pct = np.percentile(err, percentile)
+        num_converged = sum(err < tol)
         if err_pct < tol:
             break
-        LOG.warn('Iter# %d: %d Percentile error=%.4f' % (cur_iter+1, percentile, err_pct))
+        LOG.warn('Iter #%04d: %d genes converged below the tolerance level of %.1E' % (cur_iter+1, num_converged, tol))
+        LOG.debug('Median error=%.6f' % err_pct)
     return lamb, mu, phi, err
 
 
-def __em_ase(cntmat, tol, max_iters):
+def __em4ase(cntmat, tol, max_iters):
     raise NotImplementedError('EM algorithm for ASE is coming soon.')
 
 
@@ -239,9 +237,9 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
     elif model[1] == 'pg':
         with loompy.connect(loomfile) as ds:
             num_genes, num_cells = ds.shape
-            LOG.info("Loading data from %s" % loomfile)
+            LOG.info('Loading data from %s' % loomfile)
             origmat = ds.sparse().tocsr()
-            LOG.info("Processing data matrix")
+            LOG.info('Processing data matrix')
             csurv = np.where(ds.ca.Selected > 0)[0]
             LOG.info('The number of selected cells: %d' % len(csurv))
             cntmat = origmat[:, csurv]
@@ -253,7 +251,8 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             LOG.info('The number of selected genes: %d' % len(gsurv))
             cntmat = cntmat[gsurv, :]
             LOG.info('Running EM algorithm for TGX')
-            lambda_mat, mu, phi, err = __em_tgx(cntmat, scaler, percentile, tol, max_iters)
+            lambda_mat, mu, phi, err = __em4tgx(cntmat, scaler, percentile, tol, max_iters)
+            LOG.info('There were %d genes that converged below the tolerance level of %.1E' % (sum(err < tol), tol))
             LOG.info('Saving results to %s' % loomfile)
             resmat = csr_matrix((origmat.shape))
             resmat.indptr[1:-1] = np.repeat(lambda_mat.indptr[1:-1], np.diff(gsurv))
@@ -261,16 +260,16 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             resmat.indices = csurv[lambda_mat.indices]
             resmat.data = lambda_mat.data
             ds.layers['lambda'] = resmat
-            mu_res = dok_matrix((num_genes, 1), np.float64)
+            mu_res = dok_matrix((num_genes, 1), float)
             mu_res[gsurv] = mu[:, np.newaxis]
             ds.ra['mu'] = mu_res
-            phi_res = dok_matrix((num_genes, 1), np.float64)
+            phi_res = dok_matrix((num_genes, 1), float)
             phi_res[gsurv] = phi[:, np.newaxis]
             ds.ra['phi'] = phi_res
-            err_res = dok_matrix((num_genes, 1), np.float64)
+            err_res = dok_matrix((num_genes, 1), float)
             err_res[gsurv] = err[:, np.newaxis]
             ds.ra['err'] = err_res
-            g_selected = dok_matrix((num_genes, 1), np.float64)
+            g_selected = dok_matrix((num_genes, 1), float)
             g_selected[gsurv] = 1
             ds.ra['Selected:TGX:EM'] = g_selected
         LOG.info("Finished EM for TGX")
