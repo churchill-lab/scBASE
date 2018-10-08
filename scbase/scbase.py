@@ -10,7 +10,8 @@ import os
 import time
 import glob
 import numpy as np
-from scipy.sparse import dok_matrix
+from scipy.sparse import dok_matrix, csr_matrix
+from scipy.special import digamma, polygamma
 import loompy
 import pystan
 from subprocess import call
@@ -143,8 +144,133 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     np.savez_compressed(outfile, **param)
 
 
-def run_em(datafile, model, hapcode, start, end, outfile):
-    raise NotImplementedError('EM algorithm is coming soon but we recommend using run_mcmc.')
+def __update_shape(sufficient, tol=0.000001, max_iters=100):
+    shape = 0.5 / sufficient
+    for cur_iter in range(max_iters):
+        shape_prev = shape.copy()
+        g = np.log(shape) - sufficient - digamma(shape)
+        h = 1/shape - polygamma(1, shape)
+        shape = 1 / (1/shape + g/(np.power(shape, 2) * h))
+        abs_err = np.abs(shape - shape_prev)
+        abs_err_max = np.max(abs_err)
+        abs_err_arg = np.argmax(abs_err)
+        if abs_err_max < tol:
+            LOG.debug("__update_shape ran total of %d iterations (Max error=%.9f)" % (cur_iter+1, abs_err_max))
+            break
+        LOG.debug('Iter# %d: Error = %.4f [argmax = %d]' % (cur_iter, abs_err_max, abs_err_arg))
+    return shape
+
+
+def __em_tgx(cntmat, scaler, percentile, tol, max_iters):
+    cntmat_scaled = cntmat.copy()
+    cntmat_scaled.data = cntmat_scaled.data / scaler[cntmat_scaled.indices]
+    # libsz_scaled = np.squeeze(np.asarray(cntmat_scaled.sum(axis=0)))
+    ridx = np.repeat(np.arange(cntmat.shape[0]), np.diff(cntmat.indptr))
+    #
+    # Initial mu and phi
+    #
+    x_nnz = np.squeeze(np.asarray((cntmat > 0).sum(axis=1)))
+    mean_x_scaled = np.squeeze(np.asarray(cntmat_scaled.sum(axis=1))) / x_nnz
+    mean_x_scaled_square = np.squeeze(np.asarray(cntmat_scaled.power(2).sum(axis=1))) / x_nnz
+    var_x_scaled = mean_x_scaled_square - np.power(mean_x_scaled, 2)
+    phi = var_x_scaled / mean_x_scaled - 1
+    phi[phi < 0] = 0.001
+    mu = mean_x_scaled / phi
+    p = cntmat.copy()
+    lamb = cntmat.copy()
+    log_lamb = cntmat.copy()
+
+    for cur_iter in range(max_iters):
+        #
+        # Initialize an iteration
+        #
+        mu_prev = mu.copy()
+
+        #
+        # E-step
+        #
+        p.data = phi[ridx] / (scaler[cntmat.indices]*phi[ridx] + 1)
+        x_plus_mu = cntmat.copy()
+        x_plus_mu.data += mu[ridx]
+        lamb.data = x_plus_mu.data * p.data
+        mean_lamb = np.squeeze(np.asarray(lamb.sum(axis=1))) / x_nnz
+
+        log_lamb.data = digamma(x_plus_mu.data) + np.log(p.data)
+        mean_log_lamb = np.squeeze(np.asarray(log_lamb.sum(axis=1))) / x_nnz
+
+        suff = np.log(mean_lamb) - mean_log_lamb
+
+        #
+        # M-step
+        #
+        mu = __update_shape(suff, tol, max_iters)
+        phi = mean_lamb / mu
+
+        #
+        # Check termination
+        #
+        err = np.abs(mu - mu_prev)
+        # err_max = np.max(err)
+        # err_arg = np.argmax(err)
+        err_pct = np.percentile(err, percentile)
+        if err_pct < tol:
+            break
+        LOG.warn('Iter# %d: %%d Percentile error=%.4f' % (cur_iter+1, percentile, err_pct))
+    return lamb, mu, phi, err
+
+
+def __em_ase(cntmat, tol, max_iters):
+    raise NotImplementedError('EM algorithm for ASE is coming soon.')
+
+
+def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, max_iters, outfile):
+    if model[0] == 'null' and model[1] == 'null':
+        raise RuntimeError('At least either of ASE or TGX model should be specified.')
+    # ASE model
+    if model[0] == 'null':
+        LOG.warn('No ASE model will run.')
+    elif model[0] == 'zoibb':
+        raise NotImplementedError('EM version of ZOIBB model is coming soon')
+    else:
+        raise NotImplementedError('Only ZOIBB model will be available for ASE in run_em')
+    # TGX model
+    if model[1] == 'null':
+        LOG.warn('No TGX model will run.')
+    elif model[1] == 'pg':
+        with loompy.connect(loomfile) as ds:
+            num_genes, num_cells = ds.shape
+            origmat = ds.sparse().tocsr()
+            csurv = np.where(ds.ca.Selected > 0)[0]
+            LOG.info('The number of selected cells: %d' % len(csurv))
+            cntmat = origmat[:, csurv]
+            libsz = np.squeeze(np.asarray(cntmat.sum(axis=0)))
+            scaler = libsz / common_scale
+            gsurv1 = ds.ra.Selected > 0
+            gsurv2 = np.squeeze(np.asarray((cntmat > 0).sum(axis=1) > 0))
+            gsurv = np.where(np.logical_and(gsurv1, gsurv2))[0]
+            LOG.info('The number of selected genes: %d' % len(gsurv))
+            cntmat = cntmat[gsurv, :]
+            lambda_mat, mu, phi, err = __em_tgx(cntmat, scaler, percentile, tol, max_iters)
+            resmat = csr_matrix((origmat.shape))
+            resmat.indptr[1:-1] = np.repeat(lambda_mat.indptr[1:-1], np.diff(gsurv))
+            resmat.indptr[-1] = lambda_mat.indptr[-1]
+            resmat.indices = csurv[lambda_mat.indices]
+            resmat.data = lambda_mat.data
+            ds.layers['lambda'] = resmat
+            mu_res = dok_matrix((num_genes, 1), np.float64)
+            mu_res[gsurv] = mu[:, np.newaxis]
+            ds.ra['mu'] = mu_res
+            phi_res = dok_matrix((num_genes, 1), np.float64)
+            phi_res[gsurv] = phi[:, np.newaxis]
+            ds.ra['phi'] = phi_res
+            err_res = dok_matrix((num_genes, 1), np.float64)
+            err_res[gsurv] = err[:, np.newaxis]
+            ds.ra['err'] = err_res
+            g_selected = dok_matrix((num_genes, 1), np.float64)
+            g_selected[gsurv] = 1
+            ds.ra['Selected:TGX:EM'] = g_selected
+    else:
+        raise NotImplementedError('Only Gamma-Poisson model is available for TGX in run_em.')
 
 
 def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun):

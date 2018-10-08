@@ -23,7 +23,7 @@ requirements = ['numpy',
                 'scipy',
                 'Click>=6.0',
                 'pystan>=2.17',
-                'loompy>=2.0',
+                'loompy>=2.0.14',
                 'future',
                 'six']  # 'alntools>=0.1.0',
 setup_requirements = [ ]

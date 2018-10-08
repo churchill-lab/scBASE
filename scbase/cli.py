@@ -101,26 +101,35 @@ def run_mcmc(datafile, model, hapcode, start, end, outfile, verbose):
 
 
 @main.command()
-@click.argument('datafile', metavar='<npzfile>')
+@click.argument('loomfile', metavar='<loomfile>')
 @click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'))
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'))
+@click.option('-r', '--common-scale', metavar='<common_scale>', type=float, default=10000)
+@click.option('-p', '--percentile', metavar='<percentile>', type=int, default=50)
 @click.option('-s', '--start', metavar='<gix_start>', type=int, default=0, help='Starting gene (row index)')
 @click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
+@click.option('-t', '--tol', metavar='<tolerance>', type=float, default=0.000001)
+@click.option('-i', '--max-iters', metavar='<max_iters>', type=int, default=100)
 @click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(resolve_path=True, dir_okay=False), default=None)
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def run_em(datafile, model, hapcode, start, end, outfile, verbose):
+def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, max_iters, outfile, verbose):
     """
-    Run EM (using npz file)
-    :param datafile:
-    :param hapcode:
+    Run EM
+    :param loomfile:
     :param model:
+    :param common_scale:
+    :param percentile:
+    :param hapcode:
     :param start:
     :param end:
+    :param tol:
+    :param max_iters:
     :param outfile:
     :param verbose:
+    :return:
     """
     utils.configure_logging(verbose)
-    scbase.run_em(datafile, model, hapcode, start, end, outfile)
+    scbase.run_em(model, common_scale, percentile, hapcode, start, end, tol, max_iters, outfile)
 
 
 @main.command()
