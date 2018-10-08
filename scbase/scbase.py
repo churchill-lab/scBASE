@@ -215,7 +215,7 @@ def __em_tgx(cntmat, scaler, percentile, tol, max_iters):
         err_pct = np.percentile(err, percentile)
         if err_pct < tol:
             break
-        LOG.warn('Iter# %d: %%d Percentile error=%.4f' % (cur_iter+1, percentile, err_pct))
+        LOG.warn('Iter# %d: %d Percentile error=%.4f' % (cur_iter+1, percentile, err_pct))
     return lamb, mu, phi, err
 
 
