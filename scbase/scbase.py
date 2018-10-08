@@ -214,6 +214,8 @@ def __em4tgx(cntmat, scaler, percentile, tol, max_iters):
             break
         LOG.warn('Iter #%04d: %d genes converged below the tolerance level of %.1E' % (cur_iter+1, num_converged, tol))
         LOG.debug('Median error=%.6f' % err_pct)
+    if cur_iter+1 == max_iters:
+        LOG.warn('Reached the maximum number of iterations')
     return lamb, mu, phi, err
 
 
