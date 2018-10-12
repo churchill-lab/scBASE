@@ -242,7 +242,7 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             LOG.info('Loading data from %s' % loomfile)
             origmat = ds.sparse().tocsr()
             LOG.info('Processing data matrix')
-            if ds.ca.has_key('Selected'):
+            if 'Selected' in ds.ca.keys():
                 csurv = np.where(ds.ca.Selected > 0)[0]
                 cntmat = origmat[:, csurv]
             else:
@@ -252,7 +252,7 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             
             libsz = np.squeeze(np.asarray(cntmat.sum(axis=0)))
             scaler = libsz / common_scale
-            if ds.ra.has_key('Selected'):
+            if 'Selected' in ds.ra.keys():
                 gsurv1 = ds.ra.Selected > 0
             else:
                 gsurv1 = np.ones(num_genes)
