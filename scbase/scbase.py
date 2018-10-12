@@ -265,8 +265,10 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             LOG.info('There were %d genes that converged below the tolerance level of %.1E' % (sum(err < tol), tol))
             LOG.info('Saving results to %s' % loomfile)
             resmat = csr_matrix((origmat.shape))
-            resmat.indptr[1:-1] = np.repeat(lambda_mat.indptr[1:-1], np.diff(gsurv))
-            resmat.indptr[-1] = lambda_mat.indptr[-1]
+            resmat.indptr = np.ones(resmat.indptr.shape, dtype='int') * lambda_mat.indptr[-1]
+            resmat.indptr[0] = 0
+            resmat_indptr_part = np.repeat(lambda_mat.indptr[1:-1], np.diff(gsurv))
+            resmat.indptr[1:len(resmat_indptr_part)+1] = resmat_indptr_part
             resmat.indices = csurv[lambda_mat.indices]
             resmat.data = lambda_mat.data
             ds.layers['lambda'] = resmat
