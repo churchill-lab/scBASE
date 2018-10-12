@@ -242,12 +242,20 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
             LOG.info('Loading data from %s' % loomfile)
             origmat = ds.sparse().tocsr()
             LOG.info('Processing data matrix')
-            csurv = np.where(ds.ca.Selected > 0)[0]
+            if ds.ca.has_key('Selected'):
+                csurv = np.where(ds.ca.Selected > 0)[0]
+                cntmat = origmat[:, csurv]
+            else:
+                csurv = np.ones(num_cells)
+                cntmat = origmat
             LOG.info('The number of selected cells: %d' % len(csurv))
-            cntmat = origmat[:, csurv]
+            
             libsz = np.squeeze(np.asarray(cntmat.sum(axis=0)))
             scaler = libsz / common_scale
-            gsurv1 = ds.ra.Selected > 0
+            if ds.ra.has_key('Selected'):
+                gsurv1 = ds.ra.Selected > 0
+            else:
+                gsurv1 = np.ones(num_genes)
             gsurv2 = np.squeeze(np.asarray((cntmat > 0).sum(axis=1) > 0))
             gsurv = np.where(np.logical_and(gsurv1, gsurv2))[0]
             LOG.info('The number of selected genes: %d' % len(gsurv))
