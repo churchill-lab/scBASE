@@ -246,7 +246,7 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
                 csurv = np.where(ds.ca.Selected > 0)[0]
                 cntmat = origmat[:, csurv]
             else:
-                csurv = np.ones(num_cells)
+                csurv = np.arange(num_cells)
                 cntmat = origmat
             LOG.info('The number of selected cells: %d' % len(csurv))
             
