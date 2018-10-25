@@ -3,7 +3,7 @@ layout: default
 title: {{ site.name }}
 ---
 
-<p>scBASE is a “soft” zero-and-one inflated model for cellular allelic proportions in which we tackle data sparsity and variability by harnessing information derived from cell's population context.</p>
+<p><strong>scBASE</strong> is a “soft” zero-and-one inflated beta-binomial (ZOIBB) model for cellular allelic proportions in which we tackle data sparsity and variability by harnessing information derived from cell's population context.</p>
 
 <ul>
   <li>Free software: MIT license</li>
@@ -16,7 +16,7 @@ title: {{ site.name }}
 <p><strong>Note:</strong> Although scBASE is available at <a href="https://pypi.python.org/pypi/scbase/">PyPI</a> for <code>pip install</code> or <code>easy_install</code>, we highly recommend using <a href="https://www.continuum.io/downloads">Anaconda distribution</a> of python to install all the dependencies without issues. scBASE is also available on <a href="https://anaconda.org/kbchoi/scbase">Anaconda Cloud</a>, so add the following channels if you have not already:</p>
 
 <pre>
-  <code>$ conda config --add channels r
+  <code>$ conda config --add channels conda-forge
   $ conda config --add channels bioconda</code>
 </pre>
 
@@ -37,6 +37,37 @@ title: {{ site.name }}
 <pre><code>(scbase) $ source deactivate
 </code></pre>
 
+<h2>
+  <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>We assume that users have count file(s) in the following format.</p>
+
+<pre><code>#target_id	B	F	total
+#sample_id: SRR1041728
+ENSMUSG00000000001	1394.23	1394.23	2788.458371
+ENSMUSG00000000003	334.771	334.771	669.541629
+ENSMUSG00000000028	0	0	0.000000
+...
+#sample_id: SRR1041729
+ENSMUSG00000000001      20.1069 20.1069 40.213792
+ENSMUSG00000000003      10.8931 10.8931 21.786208
+ENSMUSG00000000028      2.65648e-176    2.65648e-176    0.000000
+...
+</code></pre>
+
+<p>The file has four columns in this example in which the first column is for alignment target ID's followed by the read counts of alleles and then the total read counts. This example is created from F1 hybrid of C57BL/6J male (B) and CAST/EiJ female (F). The count file can contain multiple samples (or cells) with their ID specified using '#sample_id:', and scBASE allows multiple of these files.</p>
+
+<p>Users can collate the count information and create a loom file using 'collate' subcommand in scBASE.</p>
+
+
+<pre><code>(scbase) $ source deactivate
+</code></pre>
+
+<pre><code>(scbase) $ scbase submit -o /fastscratch/myproject1 --chunk 50 --hapcode F B deng.loom
+</code></pre>
+
+<pre><code>(scbase) $ scbase collate --params ${OUTDIR} deng.loom
+</code></pre>
 
 <div id="home">
   <h2>Announcements</h2>
