@@ -1,0 +1,10 @@
+---
+layout: default
+title:  "Welcome to scBASE!"
+date:   2018-10-25 02:39:00
+categories: main
+---
+
+scBASE v0.1.0 is now released on github. The full documentation is available at [https://scbase.readthedocs.io][1].
+
+[1]: https://scbase.readthedocs.io

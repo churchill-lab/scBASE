@@ -1,0 +1,48 @@
+---
+layout: default
+title: {{ site.name }}
+---
+
+<p>scBASE is a “soft” zero-and-one inflated model for cellular allelic proportions in which we tackle data sparsity and variability by harnessing information derived from cell's population context.</p>
+
+<ul>
+  <li>Free software: MIT license</li>
+  <li>Full documentation: <a href="https://scbase.readthedocs.io/en/latest/readme.html">https://scbase.readthedocs.io/en/latest/readme.html</a></li>
+</ul>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p><strong>Note:</strong> Although scBASE is available at <a href="https://pypi.python.org/pypi/scbase/">PyPI</a> for <code>pip install</code> or <code>easy_install</code>, we highly recommend using <a href="https://www.continuum.io/downloads">Anaconda distribution</a> of python to install all the dependencies without issues. scBASE is also available on <a href="https://anaconda.org/kbchoi/scbase">Anaconda Cloud</a>, so add the following channels if you have not already:</p>
+
+<pre>
+  <code>$ conda config --add channels r
+  $ conda config --add channels bioconda</code>
+</pre>
+
+<p>To avoid conflicts among dependencies, we also highly recommend using conda virtual environment:</p>
+
+<pre>
+  <code>$ conda create -n scbase python=3
+  $ source activate scbase</code>
+</pre>
+
+<p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install scBASE:</p>
+
+<pre><code>(scbase) $ conda install -c kbchoi scbase
+</code></pre>
+
+<p>That's all! Now scBASE is available. Once you are done using scBASE, you can go out from scBASE virtual environment anytime:</p>
+
+<pre><code>(scbase) $ source deactivate
+</code></pre>
+
+
+<div id="home">
+  <h2>Announcements</h2>
+  <ul class="posts">
+    {% for post in site.posts %}
+      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ site.github.url }}{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
