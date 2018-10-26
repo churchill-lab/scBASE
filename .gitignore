@@ -57,3 +57,6 @@ data
 
 # publication directory
 publication
+
+# local jekyll bundle
+Gemefile.lock
