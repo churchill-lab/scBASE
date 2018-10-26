@@ -75,10 +75,70 @@ Options:
 <pre><code>(scbase) $ scbase collate --counts --name *.gene.counts /fastscratch/myproject1 deng.loom
 </code></pre>
 
-<pre><code>(scbase) $ scbase submit -o /fastscratch/myproject1 --chunk 50 --hapcode F B deng.loom
+<h3><a id="select" class="anchor" href="#select" aria-hidden="true"><span class="octicon octicon-link"></span></a>select</h3>
+<p>Users can select genes to fit with ZOIBB model based on the minumum numbers of cells that satisfy minimum number of read count expressed from the gene using 'select' subcommand of scBASE.</p>
+<pre><code>Usage: scbase select [OPTIONS] <loomfile>
+
+  Select genes if they are expressed at least <min_read_count> in at least
+  <min_cell_count> cells
+
+Options:
+  --min-read-count <min_read_count>
+                                  Min read count required
+  --min-cell-count <min_cell_count>
+                                  Min cell count required
+  --layer <layer_key>             The layer to consider selection
+  -v, --verbose                   the more times listed, the more output
+  --help                          Show this message and exit.
+</code></pre>
+<p>For example, the following command will mark selected genes as a row attribute of the input loom file (ra.Selected) and the fitting process in the next procedure will only run on those selected genes.</p>
+<pre><code>(scbase) $ scbase select --min-read-count 4 --min-cell-count 16 deng.loom</code></pre>
+
+<h3><a id="mcmc" class="anchor" href="#collate" aria-hidden="true"><span class="octicon octicon-link"></span></a>run_mcmc</h3>
+<p>Once input data is ready in a loom file format, we can fit ZOIBB model using 'run_mcmc' subcommand in scBASE.</p>
+<pre><code>Usage: scbase run_mcmc [OPTIONS] <npzfile>
+
+  Run MCMC (using npz file)
+
+Options:
+  --hapcode <mat_hapcode> <pat_hapcode>
+  -m, --model <ase_model> <tgx_model>
+  -s, --start <gidx_start>         Starting gene (row index)
+  -e, --end <gidx_end>             Ending gene (row index)
+  -o, --outfile <outfile>
+  -v, --verbose                   '-v' is Level 1 and '-vv' is Level 2
+  --help                          Show this message and exit.
 </code></pre>
 
-<pre><code>(scbase) $ scbase collate --params ${OUTDIR} deng.loom
+<p>For example, the following command will fit the model for the first six genes in the loom file, deng.loom. Haplotype information is given in the order of maternal and paternal allele.</p>
+<pre><code>(scbase) $ scbase run_mcmc deng.loom -s 0 -e 6 --hapcode F B -v</code></pre>
+
+<h3><a id="submit" class="anchor" href="#submit" aria-hidden="true"><span class="octicon octicon-link"></span></a>submit</h3>
+<pre><code>Usage: scbase submit [OPTIONS] <loomfile>
+  
+    Submit jobs to HPC clusters
+  
+  Options:
+    --hapcode <mat_hapcode> <pat_hapcode>
+    -m, --model <ase_model> <tgx_model>
+    -c, --chunk <chunk_size>        Chunk size
+    -o, --outdir <outdir>
+    --systype <systype>             Type of HPC cluster system (default: pbs)
+    --email <email>                 Notification E-mail
+    --queue <queue>                 Queue name
+    --mem <mem>                     Memory in GB (default: 16GB)
+    --walltime <walltime>           Walltime in hours (default: 24h
+    --dryrun
+    -v, --verbose                   '-v' is Level 1 and '-vv' is Level 2
+    --help                          Show this message and exit.
+  </code></pre>
+
+<p>For example, the following comand will submit jobs to PBS cluster, each fits 50 genes in deng.loom file. </p>
+<pre><code>(scbase) $ scbase submit -o /fastscratch/myproject1 --systype pbs --chunk 50 --hapcode F B deng.loom
+</code></pre>
+
+<p>The ZOIBB model parameters will be stored using a file name, scbase.{gidx_start}-{gidx_end}.param.npz, at the specified output folder, e.g., /fastscratch/myproject1. We will collate the results and store in the input file, deng.loom.</p>
+<pre><code>(scbase) $ scbase collate --params /fastscratch/myproject1 deng.loom
 </code></pre>
 
 <div id="home">
