@@ -37,8 +37,7 @@ title: {{ site.name }}
 <pre><code>(scbase) $ source deactivate
 </code></pre>
 
-<h2>
-  <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+<h2><a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>We assume that users have count file(s) in the following format.</p>
 
@@ -55,12 +54,25 @@ ENSMUSG00000000028      2.65648e-176    2.65648e-176    0.000000
 ...
 </code></pre>
 
-<p>The file has four columns in this example in which the first column is for alignment target ID's followed by the read counts of alleles and then the total read counts. This example is created from F1 hybrid of C57BL/6J male (B) and CAST/EiJ female (F). The count file can contain multiple samples (or cells) with their ID specified using '#sample_id:', and scBASE allows multiple of these files.</p>
+<p>The file has four columns in this example: the first column is for alignment target ID's, followed by the read counts of alleles, and then, the total read counts. This example is created from F1 hybrid of C57BL/6J male and CAST/EiJ female (denoted as B and F respectively). The count file can contain multiple samples (or cells) with their ID specified using '#sample_id:'. We can have multiple of these files.</p>
 
+<h3><a id="collate" class="anchor" href="#collate" aria-hidden="true"><span class="octicon octicon-link"></span></a>collate</h3>
 <p>Users can collate the count information and create a loom file using 'collate' subcommand in scBASE.</p>
+<pre><code>Usage: scbase collate [OPTIONS] <indir> <loomfile>
 
+  Utility function that collates input/output files
 
-<pre><code>(scbase) $ source deactivate
+Options:
+  --counts
+  --params
+  --name TEXT                     File name (wildcard characters can be used)
+  -m, --model <ase_model> <tgx_model>
+  -v, --verbose                   '-v' is Level 1 and '-vv' is Level 2
+  --help                          Show this message and exit.
+</code></pre>
+
+<p>For example, the following command will collate counts from files named *.gene.counts under the folder /fastscratch/myproject1 and create a loom file named deng.loom.</p>
+<pre><code>(scbase) $ scbase collate --counts --name *.gene.counts /fastscratch/myproject1 deng.loom
 </code></pre>
 
 <pre><code>(scbase) $ scbase submit -o /fastscratch/myproject1 --chunk 50 --hapcode F B deng.loom
