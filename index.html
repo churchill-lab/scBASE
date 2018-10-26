@@ -39,22 +39,22 @@ title: {{ site.name }}
 
 <h2><a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
 
-<p>We assume that users have count file(s) in the following format.</p>
+<p>We assume that users have allele-specific read counts in a <a href="http://http://loompy.org/">loom format</a> file (where total read counts are stored in default data layer ('') and allele-specific counts in each allele layer, specific to the alleles) or tab-delimited text file(s) in the following format. scBASE will create a loom file using count files that we provide.</p>
 
 <pre><code>#target_id	B	F	total
 #sample_id: SRR1041728
-ENSMUSG00000000001	1394.23	1394.23	2788.458371
-ENSMUSG00000000003	334.771	334.771	669.541629
-ENSMUSG00000000028	0	0	0.000000
+ENSMUSG00000000001	1394.25216017	334.74783983	1729.0
+ENSMUSG00000000003	0.0	0.0	0.0
+ENSMUSG00000000028	843.0	2.85744524983e-63	843.0
 ...
 #sample_id: SRR1041729
-ENSMUSG00000000001      20.1069 20.1069 40.213792
-ENSMUSG00000000003      10.8931 10.8931 21.786208
-ENSMUSG00000000028      2.65648e-176    2.65648e-176    0.000000
+ENSMUSG00000000001	30.9238234732	0.0761765268472	31.0
+ENSMUSG00000000003	0.0	0.0	0.0
+ENSMUSG00000000028	554.935510723	1053.06448928	1608.0
 ...
 </code></pre>
 
-<p>The file has four columns in this example: the first column is for alignment target ID's, followed by the read counts of alleles, and then, the total read counts. This example is created from F1 hybrid of C57BL/6J male and CAST/EiJ female (denoted as B and F respectively). The count file can contain multiple samples (or cells) with their ID specified using '#sample_id:'. We can have multiple of these files.</p>
+<p>For example, the file above has four columns: the first column is for alignment target ID's, followed by the read counts of alleles, and then, the total read counts. This example is created from F1 hybrid of C57BL/6J male and CAST/EiJ female (denoted as B and F respectively) using <a href="http://churchill-lab.github.io/emase-zero/">emase-zero</a>. The count file can contain multiple samples (or cells) with each sample ID specified using header '#sample_id:'. scBASE can process multiple count files.</p>
 
 <h3><a id="collate" class="anchor" href="#collate" aria-hidden="true"><span class="octicon octicon-link"></span></a>collate</h3>
 <p>Users can collate the count information and create a loom file using 'collate' subcommand in scBASE.</p>
