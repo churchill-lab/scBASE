@@ -15,26 +15,26 @@ title: {{ site.name }}
 
 <p><strong>Note:</strong> Although scBASE is available at <a href="https://pypi.python.org/pypi/scbase/">PyPI</a> for <code>pip install</code> or <code>easy_install</code>, we highly recommend using <a href="https://www.continuum.io/downloads">Anaconda distribution</a> of python to install all the dependencies without issues. scBASE is also available on <a href="https://anaconda.org/kbchoi/scbase">Anaconda Cloud</a>, so add the following channels if you have not already:</p>
 
-<pre>
-  <code>$ conda config --add channels conda-forge
-  $ conda config --add channels bioconda</code>
-</pre>
+<pre><code><strong>$</strong> conda config --add channels conda-forge
+<strong>$</strong> conda config --add channels bioconda</code></pre>
 
 <p>To avoid conflicts among dependencies, we also highly recommend using conda virtual environment:</p>
 
-<pre>
-  <code>$ conda create -n scbase python=3
-  $ source activate scbase</code>
-</pre>
+<pre><code><strong>$</strong> conda create -n scbase python=3
+<strong>$</strong> source activate scbase</code></pre>
 
-<p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install scBASE:</p>
+<p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install the dependencies for scBASE first.:</p>
 
-<pre><code>(scbase) $ conda install -c kbchoi scbase
+<pre><code>(scbase) <strong>$</strong> conda install pystan click future scipy
+(scbase) <strong>$</strong> pip install loompy
 </code></pre>
 
+<p>It is now ready to install scBASE. Note compiling stan code takes a while (several minutes depending on system resource).</p>
+<pre><code>(scbase) <strong>$</strong> python setup.py install</code></pre>
+    
 <p>That's all! Now scBASE is available. Once you are done using scBASE, you can go out from scBASE virtual environment anytime:</p>
 
-<pre><code>(scbase) $ source deactivate
+<pre><code>(scbase) <strong>$</strong> source deactivate
 </code></pre>
 
 <h2><a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
@@ -189,7 +189,7 @@ Out[5]: ['CellID', 'CellType', 'Selected', 'Size', 'Valid']
 In [6]: ds.close()
 
 </code></pre>
-<p>Among others <code>layers['lambda_k']</code> is "normalized" gene expression count per cell and <code>layers['p_k']</code> contains the final "partial pooled" allelic proportion per cell. (Note: Each layer in a loom file has a dimensionality of |num_genes|x|num_cells|.) The proportion of paternal monoallelic, bi-allelic, and maternal monoallelic cells are in <code>ra['pi_p']</code>, <code>ra['pi_b']</code>, and <code>ra['pi_m']</code>.</p>
+<p>Among others <code>layers['lambda_k']</code> is "normalized" gene expression count per cell and <code>layers['p_k']</code> contains the final "partial pooled" allelic proportion per cell. (Note: Each layer in a loom file has a dimensionality of |num_genes|x|num_cells|.) The proportion of paternal monoallelic, bi-allelic, and maternal monoallelic cells are in <code>ra['pi_p']</code>, <code>ra['pi_b']</code>, and <code>ra['pi_m']</code>. Cell level probability of allelic expression states are available at the layers of <code>layers['pi_pk']</code>, <code>layers['pi_bk']</code>, and <code>layers['pi_mk']</code>.</p>
 
 <div id="home">
   <h2>Announcements</h2>
