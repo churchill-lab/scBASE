@@ -60,3 +60,5 @@ publication
 
 # local jekyll bundle
 Gemefile.lock
+_site
+_site/index.html
