@@ -482,28 +482,47 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             curline = fh.readline()
             item = curline.rstrip().split('\t')
             hapcodes = item[1:-1]
+            num_haps = len(hapcodes)
         LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
         if tidfile is not None:
             geneID = np.loadtxt(tidfile, dtype=str, usecols=0)
+            num_genes = len(geneID)
+            gene_idx = dict(zip(geneID, np.range(num_genes)))
         LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
         ds = loompy.new(loomfile)
-        LOG.warn('A new loom file created: %s' % loomfile)
-        LOG.warn('Populating loom file with TGX')
-        for cix, f in enumerate(flist):
-            new_column = np.loadtxt(f, skiprows=1, usecols=(-1,))
-            cellID = clist[cix]
-            ds.add_columns(np.matrix(new_column).T, row_attrs={'GeneID': geneID.astype(str)},
-                           col_attrs={'CellID': np.array([cellID], dtype=str), 'Size': np.array([new_column.sum()])})
-            LOG.info('TGX loaded from %s' % f)
-        LOG.warn('Populating loom file with ASE')
-        for hix, h in enumerate(hapcodes):
-            LOG.info('Loading ASE for Haplotype %s' % h)
+        LOG.warn('A new loom file created: %s' % loomfile)        
+        for h in hapcodes:
             ds.layers[h] = 'float64'
-            for cix, f in enumerate(flist):
-                ds.layers[h][:, cix] = np.loadtxt(f, skiprows=1, usecols=(hix+1,))
-                LOG.info('ASE loaded from %s' % f)
+            LOG.warn('A loom layer for Haplotype %s was initiated' % h)
+        cix = -1
+        for f in flist:
+            new_data = np.zeros(0)
+            with open(f) as fh:
+                LOG.warn("Working on File %s:" % f)
+                fh.readline()  # skip the header in each file
+                for curline in fh:
+                    item = curline.rstrip().split()
+                    if '#sample_id' in curline:
+                        if new_data.sum() > 0:
+                            LOG.warn("Storing results of Cell: %s" % cellID)
+                            ds.add_columns(np.matrix(new_data[:, -1]), row_attrs={'GeneID': geneID.astype(str)}, col_attrs=        {'CellID': np.array([cellID], dtype=str), 'Size': np.array([new_data[:, -1].sum()])})
+                            for hix, h in enumerate(hapcodes):
+                                LOG.info('Storing counts for Haplotype %s' % h)
+                                ds.layers[h][:, cix] = new_data[:, hix]
+                        new_data = np.zeros((num_genes, num_haps))
+                        cellID = item[1]
+                        cix += 1
+                    else:
+                        gi = gene_idx[item[0]]
+                        new_data[gi] = float(item[1:])
+                LOG.warn("Storing results of Cell: %s" % cellID)
+                ds.add_columns(np.matrix(new_data[:, -1]), row_attrs={'GeneID': geneID.astype(str)}, col_attrs=                    {'CellID': np.array([cellID], dtype=str), 'Size': np.array([new_data[:, -1].sum()])})
+                for hix, h in enumerate(hapcodes):
+                    LOG.info('Storing counts for Haplotype %s' % h)
+                    ds.layers[h][:, cix] = new_data[:, hix]
+                LOG.info('All counts loaded from %s' % f)
         ds.close()
-        LOG.warn('Done. You may want to add more row_attrs or col_attrs to %s' % loomfile)
+        LOG.warn('Done. You can add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
         flist = glob.glob(os.path.join(indir, '*.param.npz'))  # All the param files are assumed to be in indir
