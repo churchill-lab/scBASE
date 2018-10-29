@@ -57,3 +57,6 @@ data
 
 # publication directory
 publication
+
+# github pages file
+index.html
