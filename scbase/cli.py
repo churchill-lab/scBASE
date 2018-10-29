@@ -134,16 +134,18 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
 @click.argument('loomfile', metavar='<loomfile>', type=click.Path(dir_okay=False))
 @click.option('--counts', 'filetype', flag_value='counts', help='If you are collating count files')
 @click.option('--params', 'filetype', flag_value='params', help='If you are collating param files')
-@click.option('--name', 'filename', default='*genes*counts', help='File name (default: *genes*counts)')
+@click.option('--name', 'filename', default='*gene*counts', help='File name (default: *gene*counts)')
+@click.option('-t', '--tidfile', metavar='<tidfile>', type=click.Path(resolve_path=True, dir_okay=False), default=None,
+help='Name of target ID file')
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
 help='This is a developer option used only when other models in addition to ones provided by default are available.')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def collate(loomfile, indir, filetype, filename, model, verbose):
+def collate(indir, loomfile, tidfile, filetype, filename, model, verbose):
     """
     Collates count or parameter files and store in a loom file (http://loompy.org).
     """
     utils.configure_logging(verbose)
-    scbase.collate(indir, loomfile, filetype, filename, model)
+    scbase.collate(indir, loomfile, tidfile, filetype, filename, model)
 
 
 if __name__ == "__main__":

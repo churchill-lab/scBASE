@@ -440,34 +440,42 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
         raise RuntimeError('No plan to support other job scheduling system until we see many requests')
 
 
-def collate(indir, loomfile, filetype, filename, model):
+def collate(indir, loomfile, tidfile, filetype, filename, model):
     if model[0] == 'null' and model[1] == 'null':
         raise RuntimeError('At least either of ASE or TGX model should be specified.')
 
     if filetype == "counts":
         # Get cell IDs
-        LOG.info('Searching subdirectories for cells at %s' % indir)
-        dlist = glob.glob(os.path.join(indir, '*/'))
-        if len(dlist) > 0:  # Assuming indir/cellID/filename
-            LOG.warn('%d subdirectories were found' % len(dlist))
-            clist = [os.path.basename(d.rstrip('/')) for d in dlist]
-            clist.sort()
-            flist = [os.path.join(indir, c, filename) for c in clist]
-            for f in flist:
-                if not os.path.exists(f):
-                    raise FileNotFoundError('%s does not exist. Consider providing a full file name' % f)
-        else:  # If a subdirectory for each cell does not exist
-            LOG.warn('No subdirectories were found')
-            LOG.warn('Looking at %s directly for count files...' % indir)
-            flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
-            if len(flist) > 0:
-                LOG.warn('%d files were found under %s' % (len(flist), indir))
-                flist.sort()
-                clist = [os.path.basename(f).split('.')[0] for f in flist]  # Assuming basename is cell ID
-            else:
-                raise FileNotFoundError('No files to collate')
-        if len(clist) != len(flist):
-            raise RuntimeError('The numbers of files and cells do not match')
+        # LOG.info('Searching subdirectories for cells at %s' % indir)
+        # dlist = glob.glob(os.path.join(indir, '*/'))
+        # if len(dlist) > 0:  # Assuming indir/cellID/filename
+        #     LOG.warn('%d subdirectories were found' % len(dlist))
+        #     clist = [os.path.basename(d.rstrip('/')) for d in dlist]
+        #     clist.sort()
+        #     flist = [os.path.join(indir, c, filename) for c in clist]
+        #     for f in flist:
+        #         if not os.path.exists(f):
+        #             raise FileNotFoundError('%s does not exist. Consider providing a full file name' % f)
+        # else:  # If a subdirectory for each cell does not exist
+        #     LOG.warn('No subdirectories were found')
+        #     LOG.warn('Looking at %s directly for count files...' % indir)
+        #     flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
+        #     if len(flist) > 0:
+        #         LOG.warn('%d files were found under %s' % (len(flist), indir))
+        #         flist.sort()
+        #         clist = [os.path.basename(f).split('.')[0] for f in flist]  # Assuming basename is cell ID
+        #     else:
+        #         raise FileNotFoundError('No files to collate')
+        # if len(clist) != len(flist):
+        #     raise RuntimeError('The numbers of files and cells do not match')
+
+        LOG.warn('Looking at %s directly for count files...' % indir)
+        flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
+        if len(flist) > 0:
+            LOG.warn('%d files were found under %s' % (len(flist), indir))
+            flist.sort()
+        else:
+            raise FileNotFoundError('No files to collate')
 
         f = flist[0]
         with open(f) as fh:
@@ -475,7 +483,8 @@ def collate(indir, loomfile, filetype, filename, model):
             item = curline.rstrip().split('\t')
             hapcodes = item[1:-1]
         LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
-        geneID = np.loadtxt(f, dtype=str, skiprows=1, usecols=0)
+        if tidfile is not None:
+            geneID = np.loadtxt(tidfile, dtype=str, usecols=0)
         LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
         ds = loompy.new(loomfile)
         LOG.warn('A new loom file created: %s' % loomfile)
