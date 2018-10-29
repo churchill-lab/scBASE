@@ -77,19 +77,17 @@ setup(
     author="Kwangbom \"KB\" Choi, Ph.D.",
     author_email='kb.choi@jax.org',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="**scBASE** is a python implementation of \"soft\" 0-and-1 inflated model for describing random monoallelic expression and quantifying allele-specific expression from scRNA-Seq data.",
+    description="**scBASE** is a python implementation of \"soft\" 0-and-1 inflated model for estimating cellular allelic proportions from scRNA-Seq data",
     entry_points={
         'console_scripts': [
             'scbase=scbase.cli:main',
