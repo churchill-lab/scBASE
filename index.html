@@ -103,12 +103,12 @@ Options:
   -v, --verbose                     '-v' is Level 1 and '-vv' is Level 2
   --help                            Show this message and exit.
 </code></pre>
-<p>For example, the following command will filter out genes that were not expressed in at least 4 reads over in at least 16 cells, and then, mark selected genes in a row attribute (<code>ra.Selected</code>) of the input loom file so the next procedure <code>run_mcmc</code> will only run on those selected genes.</p>
+<p>For example, the following command will filter out genes that were not expressed in at least 4 reads over in at least 16 cells, and then, mark selected genes in a row attribute (<code>ra.Selected</code>) of the input loom file so the next procedure <code>run-mcmc</code> will only run on those selected genes.</p>
 <pre><code><strong>$</strong> scbase select --min-read-count 4 --min-cell-count 16 proj1.loom</code></pre>
 
-<h3><a id="mcmc" class="anchor" href="#collate" aria-hidden="true"><span class="octicon octicon-link"></span></a>subcommand: <strong>run_mcmc</strong></h3>
-<p>Once input data is ready in a loom file, we can fit ZOIBB model using <code>run_mcmc</code> subcommand.</p>
-<pre><code>Usage: scbase run_mcmc [OPTIONS] &lt;loomfile&gt;
+<h3><a id="mcmc" class="anchor" href="#collate" aria-hidden="true"><span class="octicon octicon-link"></span></a>subcommand: <strong>run-mcmc</strong></h3>
+<p>Once input data is ready in a loom file, we can fit ZOIBB model using <code>run-mcmc</code> subcommand.</p>
+<pre><code>Usage: scbase run-mcmc [OPTIONS] &lt;loomfile&gt;
 
   Runs MCMC (using loom file)
 
@@ -129,7 +129,7 @@ Options:
 </code></pre>
 
 <p>For example, the following command will fit the model for the first six genes in the loom file, <code>proj1.loom</code> and save the results in a file named <code>scbase.0-6.param.npz</code>. Haplotype code should be given in the order of maternal and paternal allele.</p>
-<pre><code><strong>$</strong> scbase run_mcmc proj1.loom -s 0 -e 6 --hapcode F B</code></pre>
+<pre><code><strong>$</strong> scbase run-mcmc proj1.loom -s 0 -e 6 --hapcode F B</code></pre>
 
 <h3><a id="submit" class="anchor" href="#submit" aria-hidden="true"><span class="octicon octicon-link"></span></a>subcommand: <strong>submit</strong></h3>
 <p>Running MCMC for tens of thousands of genes would be time consuming but we can parallelize it using HPC cluster systems. We can submit jobs automatically using <code>submit</code> subcommand.</p>
@@ -205,7 +205,7 @@ Out[5]: ['CellID', 'CellType', 'Selected', 'Size', 'Valid']
 In [6]: ds.close()
 
 </code></pre>
-<p>In the final loom file, <code>layers['lambda_k']</code> is "normalized" gene expression count per cell and <code>layers['p_k']</code> contains the final "partial pooled" allelic proportion per cell. (Note: Each layer in a loom file has a dimensionality of |num_genes|x|num_cells|.) The proportion of paternal monoallelic, bi-allelic, and maternal monoallelic cells are in <code>ra['pi_p']</code>, <code>ra['pi_b']</code>, and <code>ra['pi_m']</code>. Cell level probability of allelic expression states are available at the layers of <code>layers['pi_pk']</code>, <code>layers['pi_bk']</code>, and <code>layers['pi_mk']</code>.</p>
+<p><code>layers['lambda_k']</code> is "normalized" gene expression count per cell and <code>layers['p_k']</code> contains the final "partial pooled" allelic proportion per cell. (Note: Each layer in a loom file has a dimensionality of |num_genes|x|num_cells|.) The proportion of paternal monoallelic, bi-allelic, and maternal monoallelic cells are in <code>ra['pi_p']</code>, <code>ra['pi_b']</code>, and <code>ra['pi_m']</code>. Cell level probability of allelic expression states are available at the layers of <code>layers['pi_pk']</code>, <code>layers['pi_bk']</code>, and <code>layers['pi_mk']</code>.</p>
 
 <div id="home">
   <h2>Announcements</h2>
