@@ -445,32 +445,11 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         raise RuntimeError('At least either of ASE or TGX model should be specified.')
 
     if filetype == "counts":
-        # Get cell IDs
-        # LOG.info('Searching subdirectories for cells at %s' % indir)
-        # dlist = glob.glob(os.path.join(indir, '*/'))
-        # if len(dlist) > 0:  # Assuming indir/cellID/filename
-        #     LOG.warn('%d subdirectories were found' % len(dlist))
-        #     clist = [os.path.basename(d.rstrip('/')) for d in dlist]
-        #     clist.sort()
-        #     flist = [os.path.join(indir, c, filename) for c in clist]
-        #     for f in flist:
-        #         if not os.path.exists(f):
-        #             raise FileNotFoundError('%s does not exist. Consider providing a full file name' % f)
-        # else:  # If a subdirectory for each cell does not exist
-        #     LOG.warn('No subdirectories were found')
-        #     LOG.warn('Looking at %s directly for count files...' % indir)
-        #     flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
-        #     if len(flist) > 0:
-        #         LOG.warn('%d files were found under %s' % (len(flist), indir))
-        #         flist.sort()
-        #         clist = [os.path.basename(f).split('.')[0] for f in flist]  # Assuming basename is cell ID
-        #     else:
-        #         raise FileNotFoundError('No files to collate')
-        # if len(clist) != len(flist):
-        #     raise RuntimeError('The numbers of files and cells do not match')
-
         LOG.warn('Looking at %s directly for count files...' % indir)
-        flist = glob.glob(os.path.join(indir, filename))  # filename should include wildcard in this case
+        if filename is None:
+            flist = glob.glob(os.path.join(indir, '*gene*counts'))
+        else:
+            flist = glob.glob(os.path.join(indir, filename))
         if len(flist) > 0:
             LOG.warn('%d files were found under %s' % (len(flist), indir))
             flist.sort()
@@ -533,8 +512,11 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         LOG.warn('Done. You can add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
-        flist = glob.glob(os.path.join(indir, '*.param.npz'))  # All the param files are assumed to be in indir
-        LOG.info(os.path.join(indir, '*.param.npz'))  # filename is not used in collate --params
+        LOG.warn('Looking at %s directly for param files...' % indir)
+        if filename is None:
+            flist = glob.glob(os.path.join(indir, '*.param.npz'))
+        else:
+            flist = glob.glob(os.path.join(indir, filename))
         if len(flist) < 1:
             raise FileNotFoundError('No param files to collate')
         else:
