@@ -158,11 +158,11 @@ Options:
   --help                          Show this message and exit.
 </code></pre>
 
-<p>For example, the following comand will submit jobs to PBS cluster, each fits 50 genes in <code>proj1.loom</code> file and save the results in files named <code>scbase.{gidx_start}-{gidx_end}.param.npz</code> in <code>/fastscratch/myproject1</code> folder.</p>
+<p>For example, the following comand will submit jobs to PBS cluster, each fits 50 genes in <code>proj1.loom</code> file and save the results in files named <code>scbase.{gidx_start}-{gidx_end}.param.npz</code> in <code>/fastscratch/myproject1</code> folder. This will also generate temporary data files named <code>_chunk.{gidx_start}-{gidx_end}.npz</code>, which you can delete once the jobs are all done.</p>
 <pre><code><strong>$</strong> scbase submit -o /fastscratch/myproject1 --systype pbs --chunk 50 --hapcode F B proj1.loom
 </code></pre>
 
-<p>Then we collate the model parameters and store in the input loom file, <code>proj1.loom</code> so that we can now have all the information in a single file.</p>
+<p> Now we collate the model parameters and store in the input loom file, <code>proj1.loom</code> so that we can now have all the information in a single file.</p>
 <pre><code><strong>$</strong> scbase collate --params /fastscratch/myproject1 proj1.loom
 </code></pre>
 
