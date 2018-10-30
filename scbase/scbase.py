@@ -488,15 +488,9 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         if tidfile is not None:
             geneID = np.loadtxt(tidfile, dtype=str, usecols=0)
             num_genes = len(geneID)
-            gene_idx = dict(zip(geneID, np.range(num_genes)))
+            gene_idx = dict(zip(geneID, np.arange(num_genes)))
         LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
 
-        # ds = loompy.new(loomfile)
-        # LOG.warn('A new loom file created: %s' % loomfile)
-
-        # for h in hapcodes:
-        #     ds.layers[h] = 'float64'
-        #     LOG.warn('A loom layer for Haplotype %s was initiated' % h)        
         dmat = dict()
         dmat[''] = lil_matrix((num_genes, 0))
         for h in hapcodes:
@@ -517,21 +511,17 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                             dmat[''] = hstack((dmat[h], new_data[:, -1]))
                             for hix, h in enumerate(hapcodes):
                                 dmat[h] = hstack((dmat[h], new_data[:, hix]))
-                        new_data = lil_matrix((num_genes, num_haps))
+                        new_data = lil_matrix((num_genes, num_haps+1))
                         cellID.append(item[1])
                         # cix += 1
                     else:
                         gi = gene_idx[item[0]]
                         if float(item[-1]) > 0:
-                            new_data[gi] = float(item[1:])
+                            new_data[gi] = np.array(item[1:]).astype(float)
             LOG.info("Storing results of Cell: %s" % cellID[-1])
             dmat[''] = hstack((dmat[h], new_data[:, -1]))
             for hix, h in enumerate(hapcodes):
                 dmat[h] = hstack((dmat[h], new_data[:, hix]))
-            # ds.add_columns(np.matrix(new_data[:, -1]), row_attrs={'GeneID': geneID.astype(str)}, col_attrs={'CellID': np.array([cellID], dtype=str), 'Size': np.array([new_data[:, -1].sum()])})
-            # for hix, h in enumerate(hapcodes):
-            #     LOG.info('Storing counts for Haplotype %s' % h)
-            #     ds.layers[h][:, cix] = new_data[:, hix]
             LOG.info('All counts loaded from %s' % f)
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
