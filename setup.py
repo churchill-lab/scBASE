@@ -23,6 +23,8 @@ requirements = ['numpy',
                 'scipy',
                 'Click>=6.0',
                 'pystan>=2.17',
+                'h5py>=2.8',
+                'pandas>=0.23.4',
                 'loompy>=2.0.14',
                 'future',
                 'six']  # 'alntools>=0.1.0',
@@ -87,7 +89,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="**scBASE** is a python implementation of \"soft\" 0-and-1 inflated model for estimating cellular allelic proportions from scRNA-Seq data",
+    description="**scBASE** is a python implementation of \"soft\" zero-and-one inflated model for estimating cellular allelic proportions from scRNA-Seq data",
     entry_points={
         'console_scripts': [
             'scbase=scbase.cli:main',

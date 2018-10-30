@@ -28,11 +28,11 @@ except NameError:
     xrange = range
 
 
-def disambiguate(alnfile, start, end):
-    LOG.warn('Quantifying allele-specific expression in each cell')
-    LOG.info('Verbose level 1 [ON]')
-    LOG.debug('Verbose level 2 [ON]')
-    raise NotImplementedError('Coming soon once alntools and emase-zero projects are completed.')
+# def disambiguate(alnfile, start, end):
+#     LOG.warn('Quantifying allele-specific expression in each cell')
+#     LOG.info('Verbose level 1 [ON]')
+#     LOG.debug('Verbose level 2 [ON]')
+#     raise NotImplementedError('Coming soon once alntools and emase-zero projects are completed.')
 
 
 def select(loomfile, min_read_count, min_cell_count, layer):
