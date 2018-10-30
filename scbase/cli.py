@@ -134,7 +134,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
 @click.argument('loomfile', metavar='<loomfile>', type=click.Path(dir_okay=False))
 @click.option('--counts', 'filetype', flag_value='counts', help='If you are collating count files')
 @click.option('--params', 'filetype', flag_value='params', help='If you are collating param files')
-@click.option('--name', 'filename', default=None, help='File name (default: None)')
+@click.option('--name', 'filename', help='File name (wildcard chars are supported)')
 @click.option('-t', '--tidfile', metavar='<tidfile>', type=click.Path(resolve_path=True, dir_okay=False), default=None,
 help='Name of target ID file')
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
