@@ -564,7 +564,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
                 g_fitting = g_results.item()
-                LOG.info('Storing the fitting results of %s' % g_key)
+                LOG.warn('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
                 if model[0] == 'null':
