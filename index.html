@@ -25,7 +25,7 @@ title: {{ site.name }}
 
 <p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install the dependencies for scBASE first.:</p>
 
-<pre><code>(scbase) <strong>$</strong> conda install pystan click future scipy
+<pre><code>(scbase) <strong>$</strong> conda install pystan click future scipy h5py pandas
 (scbase) <strong>$</strong> pip install loompy
 </code></pre>
 
@@ -76,7 +76,7 @@ ENSMUSG00000000028	554.935510723	1053.06448928	1608.0
 Options:
   --counts                        If you are collating count files
   --params                        If you are collating count files
-  --name TEXT                     File name (default: *genes*counts)
+  --name TEXT                     File name (wildcard chars are supported)
   -m, --model &lt;ase_model&gt; &lt;tgx_model&gt;
                                   This is a developer option used only when
                                   other models in addition to ones provided by
