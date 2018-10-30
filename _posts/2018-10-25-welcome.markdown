@@ -5,6 +5,6 @@ date:   2018-10-25 02:39:00
 categories: main
 ---
 
-scBASE v0.1.0 is now released on github. The full documentation is available at [https://scbase.readthedocs.io][1].
+scBASE v0.1.0 is now released on github. The full documentation is available at [https://churchill-lab.github.io/scBASE/][1].
 
-[1]: https://scbase.readthedocs.io
+[1]: https://churchill-lab.github.io/scBASE/
