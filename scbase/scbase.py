@@ -333,8 +333,8 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 data_dict['Selected'] = np.ones(len(genes))  # select all
                 np.savez_compressed(infile, **data_dict)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
-            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTFILE=%s,INFILE=%s' % \
-                      (model[0], model[1], hapcode[0], hapcode[1], start, end, outfile, infile)
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
             if email is not None:
                 cmd += ['-M', email]
@@ -412,8 +412,8 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                         LOG.debug('Genes in this view: %s' % ' '.join(selection.astype()))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
             outfile = os.path.join(outdir, 'scase.%05d-%05d.param.npz' % (start, end))
-            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTFILE=%s,INFILE=%s' % \
-                      (model[0], model[1], hapcode[0], hapcode[1], start, end, outfile, infile)
+            job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
+                      (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
             if email is not None:
                 cmd += ['-M', email]
