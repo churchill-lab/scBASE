@@ -445,7 +445,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         raise RuntimeError('At least either of ASE or TGX model should be specified.')
 
     if filetype == "counts":
-        LOG.warn('Looking at %s directly for count files...' % indir)
+        LOG.warn('Looking at %s directly for count files...' % os.path.abspath(indir))
         if filename is None:
             flist = glob.glob(os.path.join(indir, '*gene*counts'))
         else:
@@ -512,7 +512,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         LOG.warn('Done. You can add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
-        LOG.warn('Looking at %s directly for param files...' % indir)
+        LOG.warn('Looking at %s directly for param files...' % os.path.abspath(indir))
         if filename is None:
             flist = glob.glob(os.path.join(indir, '*.param.npz'))
         else:
@@ -570,7 +570,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 if model[0] == 'null':
                     pass
                 elif model[0] == 'zoibb':
-                    LOG.info('Writing the ASE results by ZOIBB model')
+                    LOG.info('ASE results by ZOIBB model')
                     pi_m[cur_gid] = g_fitting['ase'][0, 0]
                     pi_p[cur_gid] = g_fitting['ase'][1, 0]
                     pi_b[cur_gid] = g_fitting['ase'][2, 0]
@@ -603,7 +603,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 if model[1] == 'null':
                     pass
                 elif model[1] == 'pg':
-                    LOG.info('Writing the TGX results by PG model')
+                    LOG.info('TGX results by PG model')
                     # Get TGX point estimation
                     alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     alpha_tgx2[cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
