@@ -13,7 +13,20 @@ title: {{ site.name }}
 <h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p><strong>Note:</strong> Although scBASE is available at <a href="https://pypi.python.org/pypi/scbase/">PyPI</a> for <code>pip install</code> or <code>easy_install</code>, we highly recommend using <a href="https://www.continuum.io/downloads">Anaconda distribution</a> of python to install all the dependencies without issues. scBASE is also available on <a href="https://anaconda.org/kbchoi/scbase">Anaconda Cloud</a>, so add the following channels if you have not already:</p>
+<p>First, clone the github scBASE repository under your source directory.</p>
+
+<pre><code><strong>$</strong> git clone https://github.com/churchill-lab/scBASE.git scBASE</code></pre>
+
+<p>Or download <code>zip</code> or <code>tar.gz</code> file from the link above and extract it in your source directory. Go to scBASE source folder. You will see the following files.</p>
+
+<pre><code><strong>$</strong> cd scBASE
+<strong>$</strong> ls
+AUTHORS.rst          LICENSE              README.rst           scbase               setup.py
+CONTRIBUTING.rst     MANIFEST.in          docs                 scripts              tests
+HISTORY.rst          Makefile             requirements_dev.txt setup.cfg            tox.ini
+</code></pre>
+
+<p><strong>Note:</strong> We highly recommend using <a href="https://www.continuum.io/downloads">Anaconda distribution</a> of python to install all the dependencies without issues. Add the following channels.</p>
 
 <pre><code><strong>$</strong> conda config --add channels conda-forge
 <strong>$</strong> conda config --add channels bioconda</code></pre>
