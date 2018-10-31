@@ -11,5 +11,5 @@ deploy:
     secure: MK9HOp1iu9X0aEsQJT+EXJVVcsTQJm9jaTD9GvKtddEpR7nlRC8gWANAQGNY3zh4XqUC2HxQZBG+4M+lUkUKcG/wMOKtTJTvIbUo8eAOhnf9SaHTdfkPGAMkgwgR4kXxGGVNyzou2U2jKgYx5sms93Y9Set0VqTfP8FMda2aItHVDBFMhDsgOtd3k/svIfQft8AZmzHsel2TBGIb+MaC0MaTS3w4vyfni3LeHSeidzuVcOivmJxxNeDwAh3e+mxHEGuAu6U6xZy0ldBhOltHZySA8+TL/pgoAeSg+U3cqg+Xm2KeJJEQYD9lXpll8IIq2ThJ/nDqYBgVRfq1ldP/HzD6UG4NleqeA3SuMlTcW8djqV4O2CZK+z0KUe1AqTouPSvDNH4A+3FrnI+X1K1GoaUWHg7Y39zvqDvF9EFtwQ4aj7NfnyzgvHAK6ofVmzGlentKcw1chZSDubGeu87lpIrqJumUO41jxrK10k2UFoeYgBAQD8PMvAlJcZWQ78WtPnq+whVSQNR80xuq+YKBOQjAGHJFmNUWuAU7MG6UlQcpO8Y9vxDyLL9mf8gFvNcj4EB/CLe2qjZpnWntVOYuca+aOChkhMeTUXjR90oBmulCd64Tt5vECq4DpkRf9hade9leYucA9fOpClkq+O6BIV9dF42MduzGKzBVAiYg7CA=
   on:
     tags: true
-    repo: scBASE
+    repo: churchill-lab/scBASE
     python: 3.6
