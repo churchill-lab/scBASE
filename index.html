@@ -76,7 +76,7 @@ ENSMUSG00000000028	554.935510723	1053.06448928	1608.0
 Options:
   --counts                        If you are collating count files
   --params                        If you are collating count files
-  --name TEXT                     File name (wildcard chars are supported)
+  --name TEXT                     File name (Enclose the globbing characters with quotes)
   -m, --model &lt;ase_model&gt; &lt;tgx_model&gt;
                                   This is a developer option used only when
                                   other models in addition to ones provided by
@@ -86,7 +86,7 @@ Options:
 </code></pre>
 
 <p>For example, the following command will collate allele-specific counts from all the files whose name has the pattern of <code>*.gene.counts</code> in the folder <code>/fastscratch/myproject1</code> and create a loom file named <code>proj1.loom</code>.</p>
-<pre><code><strong>$</strong> scbase collate --counts --name *.gene.counts /fastscratch/myproject1 proj1.loom
+<pre><code><strong>$</strong> scbase collate --counts --name '*.gene.counts' /fastscratch/myproject1 proj1.loom
 </code></pre>
 
 <h3><a id="select" class="anchor" href="#select" aria-hidden="true"><span class="octicon octicon-link"></span></a>subcommand: <strong>select</strong></h3>
