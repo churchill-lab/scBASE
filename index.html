@@ -102,7 +102,7 @@ Options:
 <p>For example, the following command will collate allele-specific counts from all the files whose name has the pattern of <code>*.gene.counts</code> in the folder <code>/fastscratch/myproject1</code> and create a loom file named <code>proj1.loom</code>.</p>
 <pre><code><strong>$</strong> scbase collate --counts -t /fastscratch/myproject1/geneID.txt --name '*.gene.counts' /fastscratch/myproject1 proj1.loom
 </code></pre>
-<p>We require target ID file in case the count files may not report genes that are not expressed. For example, <code>geneID.txt</code> is a text file that contains all the Ensembl gene ID's:</p>
+<p>We require target ID file in case the count files do not contain genes that are not expressed. For example, <code>geneID.txt</code> is a text file that contains all the Ensembl gene ID's:</p>
 <pre><code>ENSMUSG00000000001
 ENSMUSG00000000003
 ENSMUSG00000000028
