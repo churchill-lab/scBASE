@@ -36,7 +36,7 @@ HISTORY.rst          Makefile             requirements_dev.txt setup.cfg        
 <pre><code><strong>$</strong> conda create -n scbase python=3
 <strong>$</strong> source activate scbase</code></pre>
 
-<p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install the dependencies for scBASE first.:</p>
+<p>Once scBASE virtual environment is created and activated, your shell prompt will show ‘(scbase)’ at the beginning to specify what virtual environment you are currently in. Now please type the following and install the dependencies for scBASE first:</p>
 
 <pre><code>(scbase) <strong>$</strong> conda install pystan click future scipy
 (scbase) <strong>$</strong> pip install loompy
@@ -100,9 +100,9 @@ Options:
 </code></pre>
 
 <p>For example, the following command will collate allele-specific counts from all the files whose name has the pattern of <code>*.gene.counts</code> in the folder <code>/fastscratch/myproject1</code> and create a loom file named <code>proj1.loom</code>.</p>
-<pre><code><strong>$</strong> scbase collate /fastscratch/myproject1/geneID.txt --counts -t  --name *.gene.counts /fastscratch/myproject1 proj1.loom
+<pre><code><strong>$</strong> scbase collate --counts -t /fastscratch/myproject1/geneID.txt --name '*.gene.counts' /fastscratch/myproject1 proj1.loom
 </code></pre>
-<p>The <code>geneID.txt</code> is a text file that contains all the Ensembl gene ID's, for example, </p>
+<p>We require target ID file in case the count files may not report genes that are not expressed. For example, <code>geneID.txt</code> is a text file that contains all the Ensembl gene ID's:</p>
 <pre><code>ENSMUSG00000000001
 ENSMUSG00000000003
 ENSMUSG00000000028
@@ -110,7 +110,6 @@ ENSMUSG00000000031
 ENSMUSG00000000037
 ...
 </code></pre>
-<p>We require target ID file in case the count files may not report genes that are not expressed.</p>
 
 <h3><a id="select" class="anchor" href="#select" aria-hidden="true"><span class="octicon octicon-link"></span></a>subcommand: <strong>select</strong></h3>
 <p>We can select genes for fitting with ZOIBB model according to the minumum numbers of cells that satisfy the minimum number of reads expressed from a gene using <code>select</code> subcommand.</p>
