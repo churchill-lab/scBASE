@@ -48,8 +48,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'scBASE'
-copyright = u"2018, Kwangbom "KB" Choi, Ph.D."
-author = u"Kwangbom "KB" Choi, Ph.D."
+copyright = u'2018, Kwangbom \"KB\" Choi, Ph.D.'
+author = u'Kwangbom \"KB\" Choi, Ph.D.'
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
