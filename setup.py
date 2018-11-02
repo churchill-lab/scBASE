@@ -3,8 +3,6 @@
 
 """The setup script."""
 
-import os
-import scbase
 from setuptools import setup, find_packages
 try:
     from setuptools.command.install import install
@@ -18,6 +16,8 @@ with open('README.rst') as readme_file:
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
+import os
+import scbase
 
 requirements = ['numpy',
                 'scipy',
