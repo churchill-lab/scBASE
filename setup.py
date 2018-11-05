@@ -28,7 +28,9 @@ requirements = ['numpy',
                 'loompy>=2.0.14',
                 'future',
                 'six']  # 'alntools>=0.1.0',
-setup_requirements = [ ]
+
+setup_requirements = ['pystan>=2.17']
+
 test_requirements = [ ]
 
 
