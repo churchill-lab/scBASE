@@ -95,7 +95,7 @@ help='Read counts per cell after scaliing (default: 10000)')
 @click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
 @click.option('-t', '--tol', metavar='<tolerance>', type=float, default=0.000001, help='Tolerance for termination (default: 0.000001)')
 @click.option('-i', '--max-iters', metavar='<max_iters>', type=int, default=100, help='Max iterations for termination (default: 100)')
-@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(dir_okay=False), default=None, help='Name of outpput file')
+@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(dir_okay=False), default=None, help='Name of output file')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, max_iters, outfile, verbose):
     """
