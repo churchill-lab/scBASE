@@ -34,8 +34,8 @@ generated quantities {
         log_sum_exp_log_pi_z_raw = log_sum_exp(log_pi_z_raw);
         for (j in 1:3)
             pi_z[i,j] = exp(log_pi_z_raw[j] - log_sum_exp_log_pi_z_raw);
-        theta_adj[i] = theta_adj[i] + pi_z[i, 1] * a_mono / (a_mono+1)
-        theta_adj[i] = theta_adj[i] + pi_z[i, 2] * 1 / (a_mono+1)
-        theta_adj[i] = theta_adj[i] + pi_z[i, 3] * theta[i]
+        theta_adj[i] = theta_adj[i] + pi_z[i, 1] * a_mono / (a_mono+1);
+        theta_adj[i] = theta_adj[i] + pi_z[i, 2] * 1 / (a_mono+1);
+        theta_adj[i] = theta_adj[i] + pi_z[i, 3] * theta[i];
     }
 }
