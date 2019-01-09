@@ -587,15 +587,8 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     ds.layers['pi_mk'][cur_gid, :] = pi_k[0]
                     ds.layers['pi_pk'][cur_gid, :] = pi_k[1]
                     ds.layers['pi_bk'][cur_gid, :] = pi_k[2]
-                    #cur_theta = np.zeros(shape=pi_k.shape)
                     alpha_mono[cur_gid] = g_fitting['ase'][3, 0]
-                    #cur_alpha_mono = g_fitting['ase'][3, 0]
-                    #alpha_mono[cur_gid] = cur_alpha_mono
                     LOG.debug('alpha_mono = %.3f' % g_fitting['ase'][3, 0])
-                    #cur_theta[0] = cur_alpha_mono/(cur_alpha_mono+1)
-                    #cur_theta[1] = 1/(cur_alpha_mono+1)
-                    #cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
-                    #ds.layers['p_k'][cur_gid, :] = (pi_k * cur_theta).sum(axis=0)
                     ds.layers['p_k'][cur_gid, :] = g_fitting['ase'][6+num_cells*4:6+num_cells*5, 0]
                 # Add handling of new ASE models here!!
                 else:
@@ -610,7 +603,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     alpha_tgx2[cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
                     LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.3f %.3f ]' %
-                              (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
+                              (g_fitting['tgx'][0, 0], g_fitting['tgx'][1, 0]))
                     ds.layers['lambda_k'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_k
                     rhat_tgx[cur_gid] = g_fitting['tgx'][-1, -1]
                     LOG.debug('Rhat_tgx = %.3f' % g_fitting['tgx'][-1, -1])
