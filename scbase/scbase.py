@@ -557,6 +557,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('%s model does not exist' % model[1])
 
+        params = dict()
         for f in flist:
             LOG.info('Loading %s' % f)
             curdata_fh = np.load(f)
@@ -564,6 +565,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
                 g_fitting = g_results.item()
+                params[g_key] = g_fitting
                 LOG.warn('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
@@ -611,6 +613,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 else:
                     raise NotImplementedError('scBASE does not know how to process %s model results' % model[1])
             LOG.warn('Finished processing %s' % f)
+        
 
         # Store ASE results
         if model[0] == 'null':
@@ -638,6 +641,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
+        np.savez_compressed(os.path.join(indir, 'scbase.params.npz'), **params)
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
