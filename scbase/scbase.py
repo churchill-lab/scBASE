@@ -641,11 +641,11 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
-        LOG.info('Saved collated parameters in %s' % loomfile)
+        LOG.warn('Saved collated parameters in %s' % loomfile)
         paramfile = os.path.join(indir, 'scbase.params.npz')
-        LOG.info('Saving collated parameters in a file: %s' % paramfile)
+        LOG.warn('Saving collated parameters in a file: %s' % paramfile)
         np.savez_compressed(paramfile, **params)
-        LOG.info('Done. You may remove _scbase.*.param.npz files.')
+        LOG.warn('Done. You may remove _scbase.*.param.npz files.')
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
