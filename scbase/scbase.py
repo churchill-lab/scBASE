@@ -95,7 +95,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
     if outfile is None:
-        outfile = 'scbase.%05d-%05d.param.npz' % (start, end)
+        outfile = '_scbase.%05d-%05d.param.npz' % (start, end)
     np.savez_compressed(outfile, **param)
     ds.close()
 
@@ -140,7 +140,7 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
     if outfile is None:
-        outfile = 'scbase.%05d-%05d.param.npz' % (start, end)
+        outfile = '_scbase.%05d-%05d.param.npz' % (start, end)
     np.savez_compressed(outfile, **param)
 
 
@@ -332,7 +332,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                 data_dict['Size'] = ds.ca.Size
                 data_dict['Selected'] = np.ones(len(genes))  # select all
                 np.savez_compressed(infile, **data_dict)
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
@@ -368,7 +368,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             LOG.info('Chunk start: %d, end %d' % (start, end))
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], start, end, outfile, loomfile)
             cmd = ['qsub']
@@ -411,7 +411,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
                     for (ix, selection, view) in ds.scan(items=genes, axis=0):
                         LOG.debug('Genes in this view: %s' % ' '.join(selection.astype()))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
@@ -641,7 +641,11 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
-        np.savez_compressed(os.path.join(indir, 'scbase.params.npz'), **params)
+        LOG.info('Saved collated parameters in %s' % loomfile)
+        paramfile = os.path.join(indir, 'scbase.params.npz')
+        LOG.info('Saving collated parameters in a file: %s' % paramfile)
+        np.savez_compressed(paramfile, **params)
+        LOG.info('Done. You may remove _scbase.*.param.npz files.')
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
