@@ -614,7 +614,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     raise NotImplementedError('scBASE does not know how to process %s model results' % model[1])
             LOG.warn('Finished processing %s' % f)
         
-
+        LOG.warn('Saving collated parameters (average only) in %s' % loomfile)
         # Store ASE results
         if model[0] == 'null':
             pass
@@ -641,9 +641,8 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
-        LOG.warn('Saved collated parameters in %s' % loomfile)
-        paramfile = os.path.join(indir, 'scbase.params.npz')
-        LOG.warn('Saving collated parameters in a file: %s' % paramfile)
+        paramfile = os.path.join(indir, 'scbase.param.npz')
+        LOG.warn('Saving all collated parameters in %s' % paramfile)
         np.savez_compressed(paramfile, **params)
         LOG.warn('Done. You may remove _scbase.*.param.npz files.')
 
