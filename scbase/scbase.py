@@ -77,15 +77,18 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
-    tgx_layer = ''
-    mat_layer = hapcode[0]
+    #tgx_layer = ''
+    #mat_layer = hapcode[0]
+    mat_layer, pat_layer = hapcode
     for g in xrange(start, end):
         if ds.ra.Selected[g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['GeneID'][g])
-            n = ds.layers[tgx_layer][g]
+            #n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
-            LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
-            LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
+            y = ds.layers[pat_layer][g]
+            n = x + y
+            LOG.debug('x: %s ...' % '\t'.join(x[:6].astype(int).astype(str)))
+            LOG.debug('n: %s ...' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc4ase(x, n, stan_model_ase).summary()['summary']
@@ -121,14 +124,17 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
-    tgx_layer = ''
-    mat_layer = hapcode[0]
+    #tgx_layer = ''
+    #mat_layer = hapcode[0]
+    mat_layer, pat_layer = hapcode
     dmat_dict = data_dict['Counts'].item()
     for g in xrange(start, end):
         if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
-            n = dmat_dict[tgx_layer][g]
-            x = dmat_dict[mat_layer][g]
+            #n = ds.layers[tgx_layer][g]
+            x = ds.layers[mat_layer][g]
+            y = ds.layers[pat_layer][g]
+            n = x + y
             LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
@@ -306,8 +312,9 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     processed = 0
 
     if systype == 'pbs':
-        tot_layer = ''
-        mat_layer = hapcode[0]
+        #tgx_layer = ''
+        #mat_layer = hapcode[0]
+        mat_layer, pat_layer = hapcode
         for idx_start in xrange(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
@@ -326,8 +333,10 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             with loompy.connect(loomfile, 'r') as ds:
                 data_dict['GeneID'] = ds.ra.GeneID[genes]
                 cur_chunk = dict()
-                cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
+                #cur_chunk[tgx_layer] = ds.layers[tgx_layer][genes, :]
                 cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
+                cur_chunk[pat_layer] = ds.layers[pat_layer][genes, :]
+                #cur_chunk[tgx_layer] = cur_chunk[mat_layer] + cur_chunk[pat_layer]
                 data_dict['Counts'] = cur_chunk
                 data_dict['Size'] = ds.ca.Size
                 data_dict['Selected'] = np.ones(len(genes))  # select all
