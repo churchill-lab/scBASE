@@ -487,7 +487,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     if '#sample_id' in curline:
                         if new_data.sum() > 0:
                             LOG.info("Storing results of Cell: %s" % cellID[-1])
-                            dmat[''] = hstack((dmat[h], new_data[:, -1]))
+                            dmat[''] = hstack((dmat[''], new_data[:, -1]))
                             for hix, h in enumerate(hapcodes):
                                 dmat[h] = hstack((dmat[h], new_data[:, hix]))
                         new_data = lil_matrix((num_genes, num_haps+1))
@@ -498,7 +498,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                         if float(item[-1]) > 0:
                             new_data[gi] = np.array(item[1:]).astype(float)
             LOG.info("Storing results of Cell: %s" % cellID[-1])
-            dmat[''] = hstack((dmat[h], new_data[:, -1]))
+            dmat[''] = hstack((dmat[''], new_data[:, -1]))
             for hix, h in enumerate(hapcodes):
                 dmat[h] = hstack((dmat[h], new_data[:, hix]))
             LOG.info('All counts loaded from %s' % f)
