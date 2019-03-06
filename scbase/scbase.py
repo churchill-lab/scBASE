@@ -131,9 +131,9 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     for g in xrange(start, end):
         if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
-            #n = ds.layers[tgx_layer][g]
-            x = ds.layers[mat_layer][g]
-            y = ds.layers[pat_layer][g]
+            #n = dmat_dict[tgx_layer][g]
+            x = dmat_dict[mat_layer][g]
+            y = dmat_dict[pat_layer][g]
             n = x + y
             LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
