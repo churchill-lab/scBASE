@@ -303,30 +303,31 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
         LOG.warn('Showing submission script only')
 
     with loompy.connect(loomfile, 'r') as ds:
-        gsurv = np.where(ds.ra.Selected)[0]
-        num_gsurv = len(gsurv)
         num_genes, num_cells = ds.shape
+        if submit_end == 0:
+            submit_end = num_genes
+        gsurv = np.where(ds.ra.Selected[submit_start:submit_end])[0] + submit_start
+        num_gsurv = len(gsurv)
         LOG.warn('The number of selected genes: %d' % num_gsurv)
         LOG.warn('The number of selected cells: %d' % num_cells)
         LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
     processed = 0
 
     if systype == 'pbs':
-        if submit_end == 0:
-            submit_end = num_gsurv
         #tgx_layer = ''
         #mat_layer = hapcode[0]
         mat_layer, pat_layer = hapcode
-        #for idx_start in xrange(0, num_gsurv, chunk):
-        for idx_start in xrange(submit_start, submit_end, chunk):
-            #idx_end = min(idx_start+chunk, num_gsurv-1)
-            idx_end = min(submit_end, idx_start+chunk, num_gsurv-1)
+        for idx_start in xrange(0, num_gsurv, chunk):
+        #for idx_start in xrange(submit_start, submit_end, chunk):
+            idx_end = min(idx_start+chunk, num_gsurv-1)
+            #idx_end = min(submit_end, idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             if idx_end < num_gsurv-1:
                 end = gsurv[idx_end]
                 genes = gsurv[idx_start:idx_end]
             else:  #idx_end == num_gsurv-1:
-                end = num_genes
+                end = submit_end
+                #end = num_genes
                 genes = gsurv[idx_start:]
             LOG.info('Chunk start: %d, end %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
