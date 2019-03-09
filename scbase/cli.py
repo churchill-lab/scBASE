@@ -123,12 +123,12 @@ help='Folder name to store parameter files')
 @click.option('--walltime', metavar='<walltime>', type=int, default=0, help='Walltime in hours (default: 24h)')
 @click.option('--dryrun', is_flag=True, help='Use this when you want to rehearse your submit commands')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
+def submit(loomfile, model, hapcode, chunk, start, end, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
     """
     Submits scBASE fitting jobs to HPC clusters
     """
     utils.configure_logging(verbose)
-    scbase.submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun)
+    scbase.submit(loomfile, model, hapcode, chunk, start, end, outdir, email, queue, mem, walltime, systype, dryrun)
 
 
 @main.command()
