@@ -295,7 +295,7 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
         raise NotImplementedError('Only Gamma-Poisson model is available for TGX in run_em.')
 
 
-def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun):
+def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun):
     LOG.warn('Loom file: %s' % loomfile)
     LOG.warn('Models: %s, %s' % (model[0], model[1]))
     LOG.warn('HPC system type: %s' % systype)
@@ -312,11 +312,15 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
     processed = 0
 
     if systype == 'pbs':
+        if submit_end == 0:
+            submit_end = num_gsurv
         #tgx_layer = ''
         #mat_layer = hapcode[0]
         mat_layer, pat_layer = hapcode
-        for idx_start in xrange(0, num_gsurv, chunk):
-            idx_end = min(idx_start+chunk, num_gsurv-1)
+        #for idx_start in xrange(0, num_gsurv, chunk):
+        for idx_start in xrange(submit_start, submit_end, chunk):
+            #idx_end = min(idx_start+chunk, num_gsurv-1)
+            idx_end = min(submit_end, idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             if idx_end < num_gsurv-1:
                 end = gsurv[idx_end]

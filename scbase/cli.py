@@ -112,6 +112,8 @@ help='Haplotype code for maternal and paternal alleles (default: M P)')
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
 help='This is a developer option used only when other models in addition to ones provided by default are available.')
 @click.option('-c', '--chunk', metavar='<chunk_size>', type=int, default=25, help='Number of genes in each chunk')
+@click.option('-s', '--start', metavar='<submit_start>', type=int, default=0, help='Job submission start')
+@click.option('-e', '--end', metavar='<submit_end>', type=int, default=0, help='Job submission end')
 @click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.',
 help='Folder name to store parameter files')
 @click.option('--systype', metavar='<systype>', default='pbs', help='Type of HPC cluster system (default: pbs)')
@@ -121,12 +123,12 @@ help='Folder name to store parameter files')
 @click.option('--walltime', metavar='<walltime>', type=int, default=0, help='Walltime in hours (default: 24h)')
 @click.option('--dryrun', is_flag=True, help='Use this when you want to rehearse your submit commands')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
+def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
     """
     Submits scBASE fitting jobs to HPC clusters
     """
     utils.configure_logging(verbose)
-    scbase.submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun)
+    scbase.submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun)
 
 
 @main.command()
