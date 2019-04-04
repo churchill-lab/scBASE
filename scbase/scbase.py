@@ -303,6 +303,7 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
         LOG.warn('Showing submission script only')
 
     with loompy.connect(loomfile, 'r') as ds:
+        ds.attrs.HapCode = hapcode
         num_genes, num_cells = ds.shape
         if submit_end == 0:
             submit_end = num_genes
@@ -662,3 +663,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
+
+
+def adjust(loomfile, model, hapcode):
+    PASS

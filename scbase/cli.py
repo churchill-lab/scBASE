@@ -150,5 +150,20 @@ def collate(indir, loomfile, tidfile, filetype, filename, model, verbose):
     scbase.collate(indir, loomfile, tidfile, filetype, filename, model)
 
 
+@main.command()
+@click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, dir_okay=False))
+@click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
+help='This is a developer option used only when other models in addition to ones provided by default are available.')
+@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'),
+help='Haplotype code for maternal and paternal alleles (default: M P)')
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def adjust(loomfile, model, hapcode, verbose):
+    """
+    Adjusts scBASE fitting per cluster
+    """
+    utils.configure_logging(verbose)
+    scbase.adjust(loomfile, model, hapcode)
+
+
 if __name__ == "__main__":
     sys.exit(main())
