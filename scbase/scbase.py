@@ -666,4 +666,4 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
 
 
 def adjust(loomfile, model, hapcode):
-    PASS
+    pass
