@@ -555,6 +555,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             ds.layers['pi_pk'] = 'float64'
             ds.layers['pi_bk'] = 'float64'
             ds.layers['pi_mk'] = 'float64'
+            ds.layers['p_bk'] = 'float64'
             ds.layers['p_k'] = 'float64'
         # Add initiation for new ASE models here!!
         else:
@@ -606,6 +607,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     ds.layers['pi_bk'][cur_gid, :] = pi_k[2]
                     alpha_mono[cur_gid] = g_fitting['ase'][3, 0]
                     LOG.debug('alpha_mono = %.3f' % g_fitting['ase'][3, 0])
+                    ds.layers['p_bk'][cur_gid, :] = g_fitting['ase'][6:6+num_cells, 0]
                     ds.layers['p_k'][cur_gid, :] = g_fitting['ase'][6+num_cells*4:6+num_cells*5, 0]
                 # Add handling of new ASE models here!!
                 else:
