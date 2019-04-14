@@ -302,7 +302,7 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
     if dryrun:
         LOG.warn('Showing submission script only')
 
-    with loompy.connect(loomfile, 'r') as ds:
+    with loompy.connect(loomfile) as ds:
         ds.attrs.HapCode = hapcode
         num_genes, num_cells = ds.shape
         if submit_end == 0:
