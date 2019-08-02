@@ -423,7 +423,7 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
             LOG.debug('Total %d genes submitted in this job' % len(genes))
             with loompy.connect(loomfile, 'r') as ds:
                 with loompy.new(infile) as dsout:
-                    for (ix, selection, view) in ds.scan(items=genes, axis=0):
+                    for (_, selection, view) in ds.scan(items=genes, axis=0):
                         LOG.debug('Genes in this view: %s' % ' '.join(selection.astype()))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
             outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
