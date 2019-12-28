@@ -3,7 +3,7 @@
 """Top-level package for scBASE."""
 
 import os
-
+from scbase import *
 
 __author__ = """Kwangbom "KB" Choi, Ph.D."""
 __email__ = 'kb.choi@jax.org'
