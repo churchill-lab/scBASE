@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 from . import utils
-from . import get_data
+#from . import get_data
 from past.builtins import xrange
 import os
 import time
@@ -22,11 +22,14 @@ except:
 
 LOG = utils.get_logger()
 
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+def get_data(path):
+    return os.path.join(_ROOT, 'stan', path)
+
 try:
     xrange
 except NameError:
     xrange = range
-
 
 # def disambiguate(alnfile, start, end):
 #     LOG.warn('Quantifying allele-specific expression in each cell')
