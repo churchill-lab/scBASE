@@ -25,6 +25,8 @@ LOG = utils.get_logger()
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 def get_data(path):
     return os.path.join(_ROOT, 'stan', path)
+def load_model(model_name):
+    return pickle.load(open(get_data('%s.pkl' % model_name), 'rb'))
 
 try:
     xrange
