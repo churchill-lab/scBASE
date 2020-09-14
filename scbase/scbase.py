@@ -484,6 +484,10 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             num_haps = len(hapcodes)
         LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
 
+        num_cells = 0
+        for f in flist:
+            num_cells += open(f).read().count('#sample_id')
+
         if tidfile is not None:
             geneID = np.loadtxt(tidfile, dtype=str, usecols=0)
             num_genes = len(geneID)
@@ -491,45 +495,64 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
 
         dmat = dict()
-        dmat[''] = lil_matrix((num_genes, 0))
+        dmat[''] = lil_matrix((num_genes, num_cells))
         for h in hapcodes:
-            dmat[h] = lil_matrix((num_genes, 0))
+            dmat[h] = lil_matrix((num_genes, num_cells))
         
         cellID = list()
-        # cix = -1
+        cix = -1
         for f in flist:
-            new_data = np.zeros(0)
             with open(f) as fh:
-                LOG.warn("Loading counts from %s:" % f)
-                fh.readline()  # skip the header in each file
+                LOG.warn("Loading counts from %s" % f)
+                fh.readline()  # skip the header (one-liner) in each file
+
                 for curline in fh:
                     item = curline.rstrip().split()
                     if '#sample_id' in curline:
-                        if new_data.sum() > 0:
-                            LOG.info("Storing results of Cell: %s" % cellID[-1])
-                            dmat[''] = hstack((dmat[''], new_data[:, -1]))
-                            for hix, h in enumerate(hapcodes):
-                                dmat[h] = hstack((dmat[h], new_data[:, hix]))
-                        new_data = lil_matrix((num_genes, num_haps+1))
+                        LOG.warn("Cell ID: %s" % item[1])
                         cellID.append(item[1])
-                        # cix += 1
+                        cix += 1
                     else:
-                        gi = gene_idx[item[0]]
-                        if float(item[-1]) > 0:
-                            new_data[gi] = np.array(item[1:]).astype(float)
-            LOG.info("Storing results of Cell: %s" % cellID[-1])
-            dmat[''] = hstack((dmat[''], new_data[:, -1]))
-            for hix, h in enumerate(hapcodes):
-                dmat[h] = hstack((dmat[h], new_data[:, hix]))
+                        gix = gene_idx[item[0]]
+                        new_data = np.array(item[1:]).astype(float)
+                        for hix, h in enumerate(hapcodes):
+                            if new_data[hix] > 0:
+                                dmat[h][gix, cix] = new_data[hix]
+                        if new_data[-1] > 0:
+                            dmat[''][gix, cix] = new_data[-1]
+
             LOG.info('All counts loaded from %s' % f)
+
+            #     for curline in fh:
+            #         item = curline.rstrip().split()
+            #         if '#sample_id' in curline:
+            #             if new_data.sum() > 0:
+            #                 LOG.info("Storing results of Cell: %s" % cellID[-1])
+            #                 dmat[''] = hstack((dmat[''], new_data[:, -1]))
+            #                 for hix, h in enumerate(hapcodes):
+            #                     dmat[h] = hstack((dmat[h], new_data[:, hix]))
+            #             new_data = lil_matrix((num_genes, num_haps+1))
+            #             cellID.append(item[1])
+            #             # cix += 1
+            #         else:
+            #             gi = gene_idx[item[0]]
+            #             if float(item[-1]) > 0:
+            #                 new_data[gi] = np.array(item[1:]).astype(float)
+            # LOG.info("Storing results of Cell: %s" % cellID[-1])
+            # dmat[''] = hstack((dmat[''], new_data[:, -1]))
+            # for hix, h in enumerate(hapcodes):
+            #     dmat[h] = hstack((dmat[h], new_data[:, hix]))
+            # LOG.info('All counts loaded from %s' % f)
+
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
         ds = loompy.connect(loomfile)
         for h in hapcodes:
             ds.layers[h] = dmat[h]
+            LOG.warn('Added counts of Layer %s' % h)
         ds.ca['Size'] = dmat[''].sum(axis=0)        
         ds.close()
-        LOG.warn('Done. You can add more row_attrs or col_attrs to %s' % loomfile)
+        LOG.warn('Done. You may add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
         LOG.warn('Looking at %s directly for param files...' % os.path.abspath(indir))
