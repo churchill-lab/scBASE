@@ -504,7 +504,6 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             with open(f) as fh:
                 LOG.warn("Loading counts from %s" % f)
                 fh.readline()  # skip the header (one-liner) in each file
-
                 for curline in fh:
                     item = curline.rstrip().split()
                     if '#sample_id' in curline:
@@ -519,8 +518,8 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                                 dmat[h][gix, cix] = new_data[hix]
                         if new_data[-1] > 0:
                             dmat[''][gix, cix] = new_data[-1]
-
             LOG.info('All counts loaded from %s' % f)
+            
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
         ds = loompy.connect(loomfile)
