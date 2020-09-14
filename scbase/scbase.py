@@ -481,7 +481,6 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             curline = fh.readline()
             item = curline.rstrip().split('\t')
             hapcodes = item[1:-1]
-            num_haps = len(hapcodes)
         LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
 
         num_cells = 0
@@ -522,28 +521,6 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                             dmat[''][gix, cix] = new_data[-1]
 
             LOG.info('All counts loaded from %s' % f)
-
-            #     for curline in fh:
-            #         item = curline.rstrip().split()
-            #         if '#sample_id' in curline:
-            #             if new_data.sum() > 0:
-            #                 LOG.info("Storing results of Cell: %s" % cellID[-1])
-            #                 dmat[''] = hstack((dmat[''], new_data[:, -1]))
-            #                 for hix, h in enumerate(hapcodes):
-            #                     dmat[h] = hstack((dmat[h], new_data[:, hix]))
-            #             new_data = lil_matrix((num_genes, num_haps+1))
-            #             cellID.append(item[1])
-            #             # cix += 1
-            #         else:
-            #             gi = gene_idx[item[0]]
-            #             if float(item[-1]) > 0:
-            #                 new_data[gi] = np.array(item[1:]).astype(float)
-            # LOG.info("Storing results of Cell: %s" % cellID[-1])
-            # dmat[''] = hstack((dmat[''], new_data[:, -1]))
-            # for hix, h in enumerate(hapcodes):
-            #     dmat[h] = hstack((dmat[h], new_data[:, hix]))
-            # LOG.info('All counts loaded from %s' % f)
-
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
         ds = loompy.connect(loomfile)
