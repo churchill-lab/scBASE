@@ -8,7 +8,7 @@ import click
 from . import scbase
 from . import utils
 from . import __logo__, __version__
-from . import get_data
+#from . import get_data
 
 
 @click.group()
@@ -95,7 +95,7 @@ help='Read counts per cell after scaliing (default: 10000)')
 @click.option('-e', '--end', metavar='<gix_end>', type=int, default=None, help='Ending gene (row index)')
 @click.option('-t', '--tol', metavar='<tolerance>', type=float, default=0.000001, help='Tolerance for termination (default: 0.000001)')
 @click.option('-i', '--max-iters', metavar='<max_iters>', type=int, default=100, help='Max iterations for termination (default: 100)')
-@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(dir_okay=False), default=None, help='Name of outpput file')
+@click.option('-o', '--outfile', metavar='<outfile>', type=click.Path(dir_okay=False), default=None, help='Name of output file')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
 def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, max_iters, outfile, verbose):
     """
@@ -112,6 +112,8 @@ help='Haplotype code for maternal and paternal alleles (default: M P)')
 @click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
 help='This is a developer option used only when other models in addition to ones provided by default are available.')
 @click.option('-c', '--chunk', metavar='<chunk_size>', type=int, default=25, help='Number of genes in each chunk')
+@click.option('-s', '--start', metavar='<submit_start>', type=int, default=0, help='Job submission start')
+@click.option('-e', '--end', metavar='<submit_end>', type=int, default=0, help='Job submission end')
 @click.option('-o', '--outdir', metavar='<outdir>', type=click.Path(exists=True, resolve_path=True, file_okay=False), default='.',
 help='Folder name to store parameter files')
 @click.option('--systype', metavar='<systype>', default='pbs', help='Type of HPC cluster system (default: pbs)')
@@ -121,12 +123,12 @@ help='Folder name to store parameter files')
 @click.option('--walltime', metavar='<walltime>', type=int, default=0, help='Walltime in hours (default: 24h)')
 @click.option('--dryrun', is_flag=True, help='Use this when you want to rehearse your submit commands')
 @click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
-def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
+def submit(loomfile, model, hapcode, chunk, start, end, outdir, email, queue, mem, walltime, systype, dryrun, verbose):
     """
     Submits scBASE fitting jobs to HPC clusters
     """
     utils.configure_logging(verbose)
-    scbase.submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun)
+    scbase.submit(loomfile, model, hapcode, chunk, start, end, outdir, email, queue, mem, walltime, systype, dryrun)
 
 
 @main.command()
@@ -146,6 +148,21 @@ def collate(indir, loomfile, tidfile, filetype, filename, model, verbose):
     """
     utils.configure_logging(verbose)
     scbase.collate(indir, loomfile, tidfile, filetype, filename, model)
+
+
+@main.command()
+@click.argument('loomfile', metavar='<loomfile>', type=click.Path(exists=True, dir_okay=False))
+@click.option('-m', '--model', metavar='<ase_model> <tgx_model>', type=(str, str), default=('zoibb', 'pg'),
+help='This is a developer option used only when other models in addition to ones provided by default are available.')
+@click.option('--hapcode', metavar='<mat_hapcode> <pat_hapcode>', type=(str, str), default=('M', 'P'),
+help='Haplotype code for maternal and paternal alleles (default: M P)')
+@click.option('-v', '--verbose', count=True, help='\'-v\' is Level 1 and \'-vv\' is Level 2')
+def adjust(loomfile, model, hapcode, verbose):
+    """
+    Adjusts scBASE fitting per cluster
+    """
+    utils.configure_logging(verbose)
+    scbase.adjust(loomfile, model, hapcode)
 
 
 if __name__ == "__main__":

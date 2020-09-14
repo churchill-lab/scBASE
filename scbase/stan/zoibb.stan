@@ -24,6 +24,7 @@ model {
 }
 generated quantities {
     matrix[N,3] pi_z;
+    vector[N] theta_est;
     real log_sum_exp_log_pi_z_raw;
     for (i in 1:N) {
         vector[3] log_pi_z_raw = log(pi);
@@ -33,5 +34,6 @@ generated quantities {
         log_sum_exp_log_pi_z_raw = log_sum_exp(log_pi_z_raw);
         for (j in 1:3)
             pi_z[i,j] = exp(log_pi_z_raw[j] - log_sum_exp_log_pi_z_raw);
+        theta_est[i] = pi_z[i,1] * (a_mono / (a_mono+1)) + pi_z[i,2] * (1 / (a_mono+1)) + pi_z[i,3] * theta[i];
     }
 }

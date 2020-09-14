@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 from . import utils
-from . import get_data
+#from . import get_data
 from past.builtins import xrange
 import os
 import time
@@ -22,11 +22,16 @@ except:
 
 LOG = utils.get_logger()
 
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+def get_data(path):
+    return os.path.join(_ROOT, 'stan', path)
+def load_model(model_name):
+    return pickle.load(open(get_data('%s.pkl' % model_name), 'rb'))
+
 try:
     xrange
 except NameError:
     xrange = range
-
 
 # def disambiguate(alnfile, start, end):
 #     LOG.warn('Quantifying allele-specific expression in each cell')
@@ -37,7 +42,7 @@ except NameError:
 
 def select(loomfile, min_read_count, min_cell_count, layer):
     with loompy.connect(loomfile) as ds:
-        gsurv = (ds.sparse(layer=layer) >= min_read_count).sum(axis=1) > min_cell_count
+        gsurv = (ds.sparse(layer=layer) >= min_read_count).sum(axis=1) >= min_cell_count
         ds.ra.Selected = np.squeeze(np.asarray(gsurv))
         LOG.info('Total %d genes selected' % gsurv.sum())
         # totals = ds.map([np.sum], axis=1)[0]  # Select based upon cell size?
@@ -77,15 +82,18 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
-    tgx_layer = ''
-    mat_layer = hapcode[0]
+    #tgx_layer = ''
+    #mat_layer = hapcode[0]
+    mat_layer, pat_layer = hapcode
     for g in xrange(start, end):
         if ds.ra.Selected[g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['GeneID'][g])
-            n = ds.layers[tgx_layer][g]
+            #n = ds.layers[tgx_layer][g]
             x = ds.layers[mat_layer][g]
-            LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
-            LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
+            y = ds.layers[pat_layer][g]
+            n = x + y
+            LOG.debug('x: %s ...' % '\t'.join(x[:6].astype(int).astype(str)))
+            LOG.debug('n: %s ...' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
             LOG.warn('Fitting ASE with %s model' % model[0])
             cur_param['ase'] = __mcmc4ase(x, n, stan_model_ase).summary()['summary']
@@ -95,7 +103,7 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
     if outfile is None:
-        outfile = 'scbase.%05d-%05d.param.npz' % (start, end)
+        outfile = '_scbase.%05d-%05d.param.npz' % (start, end)
     np.savez_compressed(outfile, **param)
     ds.close()
 
@@ -121,14 +129,17 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     LOG.debug('c: %s' % '\t'.join(c[:6].astype(str)))
     param = dict()
     processed = 0
-    tgx_layer = ''
-    mat_layer = hapcode[0]
+    #tgx_layer = ''
+    #mat_layer = hapcode[0]
+    mat_layer, pat_layer = hapcode
     dmat_dict = data_dict['Counts'].item()
     for g in xrange(start, end):
         if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
-            n = dmat_dict[tgx_layer][g]
+            #n = dmat_dict[tgx_layer][g]
             x = dmat_dict[mat_layer][g]
+            y = dmat_dict[pat_layer][g]
+            n = x + y
             LOG.debug('x: %s' % '\t'.join(x[:6].astype(int).astype(str)))
             LOG.debug('n: %s' % '\t'.join(n[:6].astype(int).astype(str)))
             cur_param = dict()
@@ -140,7 +151,7 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
             processed += 1
     LOG.info("All {:,d} genes have been processed.".format(processed))
     if outfile is None:
-        outfile = 'scbase.%05d-%05d.param.npz' % (start, end)
+        outfile = '_scbase.%05d-%05d.param.npz' % (start, end)
     np.savez_compressed(outfile, **param)
 
 
@@ -289,33 +300,40 @@ def run_em(loomfile, model, common_scale, percentile, hapcode, start, end, tol, 
         raise NotImplementedError('Only Gamma-Poisson model is available for TGX in run_em.')
 
 
-def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime, systype, dryrun):
+def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, email, queue, mem, walltime, systype, dryrun):
     LOG.warn('Loom file: %s' % loomfile)
     LOG.warn('Models: %s, %s' % (model[0], model[1]))
     LOG.warn('HPC system type: %s' % systype)
     if dryrun:
         LOG.warn('Showing submission script only')
 
-    with loompy.connect(loomfile, 'r') as ds:
-        gsurv = np.where(ds.ra.Selected)[0]
-        num_gsurv = len(gsurv)
+    with loompy.connect(loomfile) as ds:
+        ds.attrs.HapCode = hapcode
         num_genes, num_cells = ds.shape
+        if submit_end == 0:
+            submit_end = num_genes
+        gsurv = np.where(ds.ra.Selected[submit_start:submit_end])[0] + submit_start
+        num_gsurv = len(gsurv)
         LOG.warn('The number of selected genes: %d' % num_gsurv)
         LOG.warn('The number of selected cells: %d' % num_cells)
         LOG.warn('%d jobs will be submitted' % int(np.ceil(num_gsurv/chunk)))
     processed = 0
 
     if systype == 'pbs':
-        tot_layer = ''
-        mat_layer = hapcode[0]
+        #tgx_layer = ''
+        #mat_layer = hapcode[0]
+        mat_layer, pat_layer = hapcode
         for idx_start in xrange(0, num_gsurv, chunk):
+        #for idx_start in xrange(submit_start, submit_end, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
+            #idx_end = min(submit_end, idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             if idx_end < num_gsurv-1:
                 end = gsurv[idx_end]
                 genes = gsurv[idx_start:idx_end]
             else:  #idx_end == num_gsurv-1:
-                end = num_genes
+                end = submit_end
+                #end = num_genes
                 genes = gsurv[idx_start:]
             LOG.info('Chunk start: %d, end %d' % (start, end))
             infile = os.path.join(outdir, '_chunk.%05d-%05d.npz' % (start, end))
@@ -326,13 +344,15 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             with loompy.connect(loomfile, 'r') as ds:
                 data_dict['GeneID'] = ds.ra.GeneID[genes]
                 cur_chunk = dict()
-                cur_chunk[tot_layer] = ds.layers[tot_layer][genes, :]
+                #cur_chunk[tgx_layer] = ds.layers[tgx_layer][genes, :]
                 cur_chunk[mat_layer] = ds.layers[mat_layer][genes, :]
+                cur_chunk[pat_layer] = ds.layers[pat_layer][genes, :]
+                #cur_chunk[tgx_layer] = cur_chunk[mat_layer] + cur_chunk[pat_layer]
                 data_dict['Counts'] = cur_chunk
                 data_dict['Size'] = ds.ca.Size
                 data_dict['Selected'] = np.ones(len(genes))  # select all
                 np.savez_compressed(infile, **data_dict)
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
@@ -368,7 +388,7 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             LOG.info('Chunk start: %d, end %d' % (start, end))
             LOG.debug('Genes: %s' % ' '.join(genes.astype(str)))
             LOG.debug('Total %d genes submitted in this job' % len(genes))
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,START=%d,END=%d,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], start, end, outfile, loomfile)
             cmd = ['qsub']
@@ -408,10 +428,10 @@ def submit(loomfile, model, hapcode, chunk, outdir, email, queue, mem, walltime,
             LOG.debug('Total %d genes submitted in this job' % len(genes))
             with loompy.connect(loomfile, 'r') as ds:
                 with loompy.new(infile) as dsout:
-                    for (ix, selection, view) in ds.scan(items=genes, axis=0):
+                    for (_, selection, view) in ds.scan(items=genes, axis=0):
                         LOG.debug('Genes in this view: %s' % ' '.join(selection.astype()))
                         dsout.add_columns(view.layers, col_attrs=view.col_attrs, row_attrs=view.row_attrs)
-            outfile = os.path.join(outdir, 'scbase.%05d-%05d.param.npz' % (start, end))
+            outfile = os.path.join(outdir, '_scbase.%05d-%05d.param.npz' % (start, end))
             job_par = 'ASE_MODEL=%s,TGX_MODEL=%s,MAT_HAPCODE=%s,PAT_HAPCODE=%s,OUTFILE=%s,INFILE=%s' % \
                       (model[0], model[1], hapcode[0], hapcode[1], outfile, infile)
             cmd = ['qsub']
@@ -461,8 +481,11 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             curline = fh.readline()
             item = curline.rstrip().split('\t')
             hapcodes = item[1:-1]
-            num_haps = len(hapcodes)
         LOG.warn('Haplotypes: %s' % '\t'.join(hapcodes))
+
+        num_cells = 0
+        for f in flist:
+            num_cells += open(f).read().count('#sample_id')
 
         if tidfile is not None:
             geneID = np.loadtxt(tidfile, dtype=str, usecols=0)
@@ -471,45 +494,42 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         LOG.warn('Number of genes: %d [%s %s ...]' % (len(geneID), geneID[0], geneID[1]))
 
         dmat = dict()
-        dmat[''] = lil_matrix((num_genes, 0))
+        dmat[''] = lil_matrix((num_genes, num_cells))
         for h in hapcodes:
-            dmat[h] = lil_matrix((num_genes, 0))
+            dmat[h] = lil_matrix((num_genes, num_cells))
         
         cellID = list()
-        # cix = -1
+        cix = -1
         for f in flist:
-            new_data = np.zeros(0)
             with open(f) as fh:
-                LOG.warn("Loading counts from %s:" % f)
-                fh.readline()  # skip the header in each file
+                LOG.warn("Loading counts from %s" % f)
+                fh.readline()  # skip the header (one-liner) in each file
+
                 for curline in fh:
                     item = curline.rstrip().split()
                     if '#sample_id' in curline:
-                        if new_data.sum() > 0:
-                            LOG.info("Storing results of Cell: %s" % cellID[-1])
-                            dmat[''] = hstack((dmat[h], new_data[:, -1]))
-                            for hix, h in enumerate(hapcodes):
-                                dmat[h] = hstack((dmat[h], new_data[:, hix]))
-                        new_data = lil_matrix((num_genes, num_haps+1))
+                        LOG.warn("Cell ID: %s" % item[1])
                         cellID.append(item[1])
-                        # cix += 1
+                        cix += 1
                     else:
-                        gi = gene_idx[item[0]]
-                        if float(item[-1]) > 0:
-                            new_data[gi] = np.array(item[1:]).astype(float)
-            LOG.info("Storing results of Cell: %s" % cellID[-1])
-            dmat[''] = hstack((dmat[h], new_data[:, -1]))
-            for hix, h in enumerate(hapcodes):
-                dmat[h] = hstack((dmat[h], new_data[:, hix]))
+                        gix = gene_idx[item[0]]
+                        new_data = np.array(item[1:]).astype(float)
+                        for hix, h in enumerate(hapcodes):
+                            if new_data[hix] > 0:
+                                dmat[h][gix, cix] = new_data[hix]
+                        if new_data[-1] > 0:
+                            dmat[''][gix, cix] = new_data[-1]
+
             LOG.info('All counts loaded from %s' % f)
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
         ds = loompy.connect(loomfile)
         for h in hapcodes:
             ds.layers[h] = dmat[h]
+            LOG.warn('Added counts of Layer %s' % h)
         ds.ca['Size'] = dmat[''].sum(axis=0)        
         ds.close()
-        LOG.warn('Done. You can add more row_attrs or col_attrs to %s' % loomfile)
+        LOG.warn('Done. You may add more row_attrs or col_attrs to %s' % loomfile)
 
     elif filetype == 'params':
         LOG.warn('Looking at %s directly for param files...' % os.path.abspath(indir))
@@ -540,6 +560,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
             ds.layers['pi_pk'] = 'float64'
             ds.layers['pi_bk'] = 'float64'
             ds.layers['pi_mk'] = 'float64'
+            ds.layers['p_bk'] = 'float64'
             ds.layers['p_k'] = 'float64'
         # Add initiation for new ASE models here!!
         else:
@@ -557,6 +578,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('%s model does not exist' % model[1])
 
+        params = dict()
         for f in flist:
             LOG.info('Loading %s' % f)
             curdata_fh = np.load(f)
@@ -564,6 +586,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 cur_gid = gid[g_key]
                 LOG.debug('Current gene index: %d' % cur_gid)
                 g_fitting = g_results.item()
+                params[g_key] = g_fitting
                 LOG.warn('Storing the fitting results of %s' % g_key)
 
                 # Process ASE results
@@ -587,14 +610,10 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     ds.layers['pi_mk'][cur_gid, :] = pi_k[0]
                     ds.layers['pi_pk'][cur_gid, :] = pi_k[1]
                     ds.layers['pi_bk'][cur_gid, :] = pi_k[2]
-                    cur_theta = np.zeros(shape=pi_k.shape)
-                    cur_alpha_mono = g_fitting['ase'][3, 0]
-                    alpha_mono[cur_gid] = cur_alpha_mono
+                    alpha_mono[cur_gid] = g_fitting['ase'][3, 0]
                     LOG.debug('alpha_mono = %.3f' % g_fitting['ase'][3, 0])
-                    cur_theta[0] = cur_alpha_mono/(cur_alpha_mono+1)
-                    cur_theta[1] = 1/(cur_alpha_mono+1)
-                    cur_theta[2] = g_fitting['ase'][6:6+num_cells, 0]  # theta_{b,k}
-                    ds.layers['p_k'][cur_gid, :] = (pi_k * cur_theta).sum(axis=0)
+                    ds.layers['p_bk'][cur_gid, :] = g_fitting['ase'][6:6+num_cells, 0]
+                    ds.layers['p_k'][cur_gid, :] = g_fitting['ase'][6+num_cells*4:6+num_cells*5, 0]
                 # Add handling of new ASE models here!!
                 else:
                     raise NotImplementedError('scBASE does not know how to process %s model results' % model[0])
@@ -608,7 +627,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                     alpha_tgx1[cur_gid] = g_fitting['tgx'][0, 0]  # two alphas
                     alpha_tgx2[cur_gid] = g_fitting['tgx'][1, 0]  # two alphas
                     LOG.debug('[ alpha_tgx1, alpha_tgx2 ] = [ %.3f %.3f ]' %
-                              (g_fitting['tgx'][4, 0], g_fitting['tgx'][5, 0]))
+                              (g_fitting['tgx'][0, 0], g_fitting['tgx'][1, 0]))
                     ds.layers['lambda_k'][cur_gid, :]  = g_fitting['tgx'][2:2+num_cells, 0]  # lambda_k
                     rhat_tgx[cur_gid] = g_fitting['tgx'][-1, -1]
                     LOG.debug('Rhat_tgx = %.3f' % g_fitting['tgx'][-1, -1])
@@ -616,7 +635,8 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                 else:
                     raise NotImplementedError('scBASE does not know how to process %s model results' % model[1])
             LOG.warn('Finished processing %s' % f)
-
+        
+        LOG.warn('Saving collated parameters (average only) in %s' % loomfile)
         # Store ASE results
         if model[0] == 'null':
             pass
@@ -643,6 +663,14 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
         else:
             raise NotImplementedError('scBASE does not know how to store %s model results' % model[1])
         ds.close()
+        paramfile = os.path.join(indir, 'scbase.param.npz')
+        LOG.warn('Saving all collated parameters in %s' % paramfile)
+        np.savez_compressed(paramfile, **params)
+        LOG.warn('Done. You may remove _scbase.*.param.npz files.')
 
     else:
         raise RuntimeError('filetype option should be either of --counts or --params')
+
+
+def adjust(loomfile, model, hapcode):
+    pass
