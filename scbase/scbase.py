@@ -4,8 +4,8 @@
 
 from __future__ import print_function
 from . import utils
-#from . import get_data
-from past.builtins import xrange
+# from . import get_data
+# from past.builtins import xrange
 import os
 import time
 import glob
@@ -28,10 +28,11 @@ def get_data(path):
 def load_model(model_name):
     return pickle.load(open(get_data('%s.pkl' % model_name), 'rb'))
 
-try:
-    xrange
-except NameError:
-    xrange = range
+# try:
+#     xrange
+# except NameError:
+#     xrange = range
+
 
 # def disambiguate(alnfile, start, end):
 #     LOG.warn('Quantifying allele-specific expression in each cell')
@@ -85,7 +86,8 @@ def run_mcmc(loomfile, model, hapcode, start, end, outfile):
     #tgx_layer = ''
     #mat_layer = hapcode[0]
     mat_layer, pat_layer = hapcode
-    for g in xrange(start, end):
+    # for g in xrange(start, end):
+    for g in range(start, end):
         if ds.ra.Selected[g]:
             LOG.warn('Loading data for Gene %s' % ds.ra['GeneID'][g])
             #n = ds.layers[tgx_layer][g]
@@ -133,7 +135,8 @@ def run_mcmc_from_npz(datafile, model, hapcode, start, end, outfile):
     #mat_layer = hapcode[0]
     mat_layer, pat_layer = hapcode
     dmat_dict = data_dict['Counts'].item()
-    for g in xrange(start, end):
+    # for g in xrange(start, end):
+    for g in range(start, end):
         if data_dict['Selected'][g]:
             LOG.warn('Loading data for Gene %s' % data_dict['GeneID'][g])
             #n = dmat_dict[tgx_layer][g]
@@ -323,8 +326,9 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
         #tgx_layer = ''
         #mat_layer = hapcode[0]
         mat_layer, pat_layer = hapcode
-        for idx_start in xrange(0, num_gsurv, chunk):
-        #for idx_start in xrange(submit_start, submit_end, chunk):
+        for idx_start in range(0, num_gsurv, chunk):
+        # for idx_start in xrange(0, num_gsurv, chunk):
+        # for idx_start in xrange(submit_start, submit_end, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             #idx_end = min(submit_end, idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
@@ -376,7 +380,8 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
         LOG.debug('Total %d genes were submitted' % processed)
         LOG.warn('Job submission complete')
     elif systype == 'pbs-with-whole-loom':  # Do not use this: loom is not stable
-        for idx_start in xrange(0, num_gsurv, chunk):
+        # for idx_start in xrange(0, num_gsurv, chunk):
+        for idx_start in range(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             if idx_end < num_gsurv-1:
@@ -412,7 +417,8 @@ def submit(loomfile, model, hapcode, chunk, submit_start, submit_end, outdir, em
         LOG.debug('Total %d genes were submitted' % processed)
         LOG.warn('Job submission complete')
     elif systype == 'pbs-with-loom-chunks':  # Do not use this: loompy does not support this
-        for idx_start in xrange(0, num_gsurv, chunk):
+        # for idx_start in xrange(0, num_gsurv, chunk):
+        for idx_start in range(0, num_gsurv, chunk):
             idx_end = min(idx_start+chunk, num_gsurv-1)
             start = gsurv[idx_start]
             end = gsurv[idx_end]
@@ -519,7 +525,7 @@ def collate(indir, loomfile, tidfile, filetype, filename, model):
                         if new_data[-1] > 0:
                             dmat[''][gix, cix] = new_data[-1]
             LOG.info('All counts loaded from %s' % f)
-            
+
         loompy.create(loomfile, dmat[''], row_attrs={'GeneID': geneID}, col_attrs={'CellID': np.array(cellID).astype(str)})
         LOG.warn('Created %s' % loomfile)
         ds = loompy.connect(loomfile)
